@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assistant de calcul PnL - Trading</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --bg-card: #020617;
+      --bg-input: #020617;
+      --border-subtle: #1f2933;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.15);
+      --accent-strong: rgba(37, 99, 235, 0.25);
+      --danger: #ef4444;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --good: #22c55e;
+      --bad: #f97316;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #0f172a, #020617 55%);
+      color: var(--text);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1120px;
+      margin: auto;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .app-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .app-title h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: 0.03em;
+    }
+
+    .app-title p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+    }
+
+    .pill-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.1fr) minmax(0, 1.5fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 16px;
+      }
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.18), transparent 45%),
+                  radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 55%),
+                  #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.08);
+      padding: 18px 18px 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(148, 163, 184, 0.16), transparent 45%);
+      opacity: 0.16;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .card-subtitle {
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .field label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .field small {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      padding: 7px 9px;
+      font-size: 0.82rem;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.55);
+      background: rgba(15, 23, 42, 1);
+    }
+
+    .input-with-unit {
+      display: flex;
+      align-items: stretch;
+    }
+
+    .input-with-unit input {
+      border-radius: 10px 0 0 10px;
+      border-right: none;
+    }
+
+    .input-unit {
+      min-width: 44px;
+      border-radius: 0 10px 10px 0;
+      border: 1px solid var(--border-subtle);
+      border-left: none;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+    }
+
+    .radio-group {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .radio-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .radio-pill input {
+      display: none;
+    }
+
+    .radio-pill.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .badge-long {
+      color: #22c55e;
+    }
+
+    .badge-short {
+      color: #f97316;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .toggle-row label {
+      margin: 0;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+    }
+
+    .helper-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .helper-row button {
+      border-radius: 999px;
+      border: none;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      background: rgba(37, 99, 235, 0.2);
+      color: var(--accent);
+    }
+
+    .results-main {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .result-card {
+      padding: 10px 11px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+    }
+
+    .result-card.muted {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .result-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .result-value {
+      font-size: 1.05rem;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .result-value span.secondary {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .result-value.positive {
+      color: var(--good);
+    }
+
+    .result-value.negative {
+      color: var(--bad);
+    }
+
+    .result-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .results-footer {
+      border-top: 1px dashed rgba(148, 163, 184, 0.4);
+      padding-top: 8px;
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .results-footer strong {
+      color: var(--text);
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .status-text {
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+    }
+
+    .status-text.error {
+      color: var(--danger);
+    }
+
+    .status-text.muted {
+      color: var(--text-muted);
+    }
+
+    .price-live {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.9rem;
+    }
+
+    .price-live small {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .section-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .section-row h2 {
+      margin-bottom: 0;
+    }
+
+    .subpill {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 2px 8px;
+    }
+
+    @media (max-width: 600px) {
+      .results-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-title">
+        <h1>Assistant PnL dérivés</h1>
+        <p>Simulation de résultats pour positions long / short avec levier, frais et prix en temps réel.</p>
+      </div>
+      <div class="pill">
+        <span class="pill-indicator"></span>
+        <span>Mise à jour prix toutes les 5 s</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Colonne gauche : paramètres -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="section-row">
+            <h2>Paramètres de la position</h2>
+            <span class="subpill">Aucune donnée stockée</span>
+          </div>
+          <p class="card-subtitle">Renseignez les caractéristiques de la position pour obtenir une estimation de votre résultat net.</p>
+
+          <!-- Bloc marché -->
+          <div class="grid-2" style="margin-bottom: 12px;">
+            <div class="field">
+              <label for="symbol">Crypto / contrat</label>
+              <select id="symbol">
+                <option value="INJUSDC">INJUSDC</option>
+                <option value="BTCUSDT">BTCUSDT</option>
+                <option value="ETHUSDT">ETHUSDT</option>
+                <option value="BNBUSDT">BNBUSDT</option>
+                <option value="SOLUSDT">SOLUSDT</option>
+                <option value="XRPUSDT">XRPUSDT</option>
+                <option value="AVAXUSDT">AVAXUSDT</option>
+                <option value="LINKUSDT">LINKUSDT</option>
+                <option value="ADAUSDT">ADAUSDT</option>
+                <option value="DOGEUSDT">DOGEUSDT</option>
+                <option value="TONUSDT">TONUSDT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prix spot Binance</label>
+              <div class="price-live" id="livePriceDisplay">
+                <span id="livePriceValue">--</span>
+                <small id="livePriceStatus">en attente...</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloc taille et direction -->
+          <div class="grid-2">
+            <div class="field">
+              <label for="wallet">
+                Taille du wallet
+                <span><small>collatéral utilisé</small></span>
+              </label>
+              <div class="input-with-unit">
+                <input id="wallet" type="number" min="0" step="0.01" value="100" />
+                <div class="input-unit">USDT</div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Direction</label>
+              <div class="radio-group" id="directionGroup">
+                <label class="radio-pill active" data-direction="long">
+                  <input type="radio" name="direction" value="long" checked />
+                  <span class="badge-long">Long</span>
+                </label>
+                <label class="radio-pill" data-direction="short">
+                  <input type="radio" name="direction" value="short" />
+                  <span class="badge-short">Short</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloc levier et temps -->
+          <div class="grid-3" style="margin-top: 6px;">
+            <div class="field">
+              <label for="leverage">Effet de levier</label>
+              <input id="leverage" type="number" min="1" step="0.1" value="5" />
+            </div>
+            <div class="field">
+              <label for="hourlyFee">Frais/heure (%)</label>
+              <div class="input-with-unit">
+                <input id="hourlyFee" type="number" min="0" step="0.001" value="0.01" />
+                <div class="input-unit">%</div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="hours">Nombre d'heures</label>
+              <input id="hours" type="number" min="0" step="0.1" value="1" />
+            </div>
+          </div>
+
+          <!-- Bloc prix et objectif -->
+          <div style="margin-top: 14px;"></div>
+          <div class="section-row">
+            <h2>Prix et objectif</h2>
+            <span class="subpill">Prix de sortie manuel ou cible en %</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="entryPrice">Prix d'entrée</label>
+              <input id="entryPrice" type="number" min="0" step="0.0001" />
+              <div class="helper-row">
+                <span>Utiliser le spot actuel comme base.</span>
+                <button type="button" id="btnUseLiveAsEntry">Aligner sur le spot</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="exitMode">Définition du prix de sortie</label>
+              <select id="exitMode">
+                <option value="price">Prix de sortie direct</option>
+                <option value="target">Gain cible (% sur position)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 6px;">
+            <div class="field" id="exitPriceField">
+              <label for="exitPrice">Prix de sortie</label>
+              <input id="exitPrice" type="number" min="0" step="0.0001" />
+              <div class="toggle-row">
+                <small>Suivre le prix spot en temps réel</small>
+                <input id="useLivePrice" type="checkbox" />
+              </div>
+            </div>
+            <div class="field" id="targetReturnField" style="display:none;">
+              <label for="targetReturn">
+                Gain cible
+                <span><small>% sur la taille de la position</small></span>
+              </label>
+              <div class="input-with-unit">
+                <input id="targetReturn" type="number" step="0.1" value="10" />
+                <div class="input-unit">%</div>
+              </div>
+              <small>Le prix de sortie sera calculé automatiquement en fonction de la direction.</small>
+            </div>
+          </div>
+
+          <!-- Bloc frais de transaction -->
+          <div style="margin-top: 14px;"></div>
+          <div class="section-row">
+            <h2>Frais de transaction</h2>
+            <span class="subpill">Entrée + sortie</span>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="tradingFee">
+                Frais par ordre (%)
+              </label>
+              <div class="input-with-unit">
+                <input id="tradingFee" type="number" min="0" step="0.0001" value="0.1" />
+                <div class="input-unit">%</div>
+              </div>
+              <small>Maker / taker typique futures : 0,02 % à 0,06 %.</small>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <div class="status-text muted">Les frais sont appliqués à l'entrée et à la sortie sur le nominal (wallet × levier).</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Colonne droite : résultats -->
+      <section class="card">
+        <div class="card-inner">
+          <div class="section-row">
+            <h2>Résultats estimés</h2>
+            <span class="subpill">Mise à jour en temps réel</span>
+          </div>
+          <p class="card-subtitle">Synthèse du PnL brut, des frais totaux et de l'évolution de votre wallet.</p>
+
+          <div id="statusMessage" class="status-text muted">En attente de paramètres complets...</div>
+
+          <div class="results-main" id="resultsMain" style="opacity:0.35;">
+            <div class="result-card" id="walletResultCard">
+              <div class="result-label">Nouveau wallet estimé</div>
+              <div class="result-value" id="newWalletValue">
+                <span>--</span>
+              </div>
+              <div class="result-meta" id="initialWalletMeta">Initial : -- USDT</div>
+            </div>
+
+            <div class="result-card muted">
+              <div class="result-label">Gain net</div>
+              <div class="result-value" id="netGainValue">
+                <span>--</span>
+                <span class="secondary" id="netGainPercent">(-- %)</span>
+              </div>
+              <div class="result-meta" id="grossPnLMeta">PNL brut (avant frais) : -- USDT</div>
+            </div>
+          </div>
+
+          <div class="results-footer" id="resultsFooter" style="opacity:0.35;">
+            <div>
+              <span class="pill-inline">
+                <span class="chip-dot"></span>
+                <span id="positionSummary">Nominal, direction et prix seront affichés ici.</span>
+              </span>
+            </div>
+            <div>
+              <strong>Frais totaux :</strong>
+              <span id="feesSummary">--</span>
+            </div>
+            <div>
+              <strong>Prix de sortie utilisé :</strong>
+              <span id="exitPriceSummary">--</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const BINANCE_TICKER_URL = "https://api.binance.com/api/v3/ticker/price?symbol=";
+      const REFRESH_INTERVAL_MS = 5000;
+
+      // Sélection des éléments DOM
+      const symbolSelect = document.getElementById("symbol");
+      const livePriceDisplay = document.getElementById("livePriceValue");
+      const livePriceStatus = document.getElementById("livePriceStatus");
+
+      const walletInput = document.getElementById("wallet");
+      const directionGroup = document.getElementById("directionGroup");
+      const leverageInput = document.getElementById("leverage");
+      const hourlyFeeInput = document.getElementById("hourlyFee");
+      const hoursInput = document.getElementById("hours");
+
+      const entryPriceInput = document.getElementById("entryPrice");
+      const exitModeSelect = document.getElementById("exitMode");
+      const exitPriceField = document.getElementById("exitPriceField");
+      const exitPriceInput = document.getElementById("exitPrice");
+      const useLivePriceCheckbox = document.getElementById("useLivePrice");
+      const targetReturnField = document.getElementById("targetReturnField");
+      const targetReturnInput = document.getElementById("targetReturn");
+      const btnUseLiveAsEntry = document.getElementById("btnUseLiveAsEntry");
+
+      const tradingFeeInput = document.getElementById("tradingFee");
+
+      const statusMessage = document.getElementById("statusMessage");
+      const resultsMain = document.getElementById("resultsMain");
+      const resultsFooter = document.getElementById("resultsFooter");
+
+      const newWalletValue = document.getElementById("newWalletValue");
+      const initialWalletMeta = document.getElementById("initialWalletMeta");
+      const netGainValue = document.getElementById("netGainValue");
+      const netGainPercent = document.getElementById("netGainPercent");
+      const grossPnLMeta = document.getElementById("grossPnLMeta");
+      const positionSummary = document.getElementById("positionSummary");
+      const feesSummary = document.getElementById("feesSummary");
+      const exitPriceSummary = document.getElementById("exitPriceSummary");
+      const walletResultCard = document.getElementById("walletResultCard");
+
+      let livePrice = null;
+      let priceTimer = null;
+
+      function getDirection() {
+        const active = directionGroup.querySelector(".radio-pill.active input");
+        return active ? active.value : "long";
+      }
+
+      function setDirection(direction) {
+        const pills = directionGroup.querySelectorAll(".radio-pill");
+        pills.forEach(pill => {
+          const d = pill.getAttribute("data-direction");
+          if (d === direction) {
+            pill.classList.add("active");
+            pill.querySelector("input").checked = true;
+          } else {
+            pill.classList.remove("active");
+            pill.querySelector("input").checked = false;
+          }
+        });
+        calculateAndRender();
+      }
+
+      directionGroup.addEventListener("click", (e) => {
+        const pill = e.target.closest(".radio-pill");
+        if (!pill) return;
+        const dir = pill.getAttribute("data-direction");
+        if (dir) {
+          setDirection(dir);
+        }
+      });
+
+      // Gestion du mode de sortie
+      exitModeSelect.addEventListener("change", () => {
+        const mode = exitModeSelect.value;
+        if (mode === "price") {
+          exitPriceField.style.display = "block";
+          targetReturnField.style.display = "none";
+        } else {
+          exitPriceField.style.display = "none";
+          targetReturnField.style.display = "block";
+        }
+        calculateAndRender();
+      });
+
+      useLivePriceCheckbox.addEventListener("change", () => {
+        if (useLivePriceCheckbox.checked && livePrice !== null) {
+          exitPriceInput.value = livePrice.toFixed(4);
+        }
+        exitPriceInput.disabled = useLivePriceCheckbox.checked;
+        calculateAndRender();
+      });
+
+      btnUseLiveAsEntry.addEventListener("click", () => {
+        if (livePrice !== null) {
+          entryPriceInput.value = livePrice.toFixed(4);
+          calculateAndRender();
+        }
+      });
+
+      // Fetch du prix spot
+      async function fetchLivePrice() {
+        const symbol = symbolSelect.value;
+        if (!symbol) return;
+        try {
+          livePriceStatus.textContent = "mise à jour...";
+          const res = await fetch(BINANCE_TICKER_URL + encodeURIComponent(symbol));
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          const price = parseFloat(data.price);
+          if (!isFinite(price)) throw new Error("Prix invalide");
+          livePrice = price;
+          livePriceDisplay.textContent = price.toFixed(4) + " USDT";
+          livePriceStatus.textContent = "spot Binance";
+
+          if (useLivePriceCheckbox.checked) {
+            exitPriceInput.value = price.toFixed(4);
+          }
+
+          // Premier prix : facultatif, pré-remplir le prix d'entrée s'il est vide
+          if (!entryPriceInput.value) {
+            entryPriceInput.value = price.toFixed(4);
+          }
+
+          calculateAndRender();
+        } catch (err) {
+          livePriceDisplay.textContent = "--";
+          livePriceStatus.textContent = "erreur API";
+          // On ne bloque pas le reste du calcul
+        }
+      }
+
+      function startPricePolling() {
+        if (priceTimer) clearInterval(priceTimer);
+        fetchLivePrice();
+        priceTimer = setInterval(fetchLivePrice, REFRESH_INTERVAL_MS);
+      }
+
+      symbolSelect.addEventListener("change", () => {
+        startPricePolling();
+      });
+
+      // Utilitaires de formatage
+      function formatNumber(value, decimals) {
+        if (!isFinite(value)) return "--";
+        return value.toLocaleString("fr-FR", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+      }
+
+      function parseInputNumber(el) {
+        const v = parseFloat(el.value.replace(",", "."));
+        return isFinite(v) ? v : NaN;
+      }
+
+      // Logique de calcul
+      function computeResults() {
+        const wallet = parseInputNumber(walletInput);
+        const leverage = parseInputNumber(leverageInput);
+        const hourlyFeePct = parseInputNumber(hourlyFeeInput);
+        const hours = parseInputNumber(hoursInput);
+        const entryPrice = parseInputNumber(entryPriceInput);
+        const tradingFeePct = parseInputNumber(tradingFeeInput);
+        const direction = getDirection();
+        const exitMode = exitModeSelect.value;
+
+        if (!wallet || wallet <= 0 || !entryPrice || entryPrice <= 0) {
+          return { ok: false, reason: "Renseignez au minimum le wallet et le prix d'entrée." };
+        }
+
+        const lev = leverage && leverage > 0 ? leverage : 1;
+        const notional = wallet * lev;
+
+        let exitPrice;
+        let exitPriceSource;
+
+        if (exitMode === "price") {
+          const ep = parseInputNumber(exitPriceInput);
+          if (!ep || ep <= 0) {
+            return { ok: false, reason: "Renseignez un prix de sortie valide ou utilisez le mode 'gain cible'." };
+          }
+          exitPrice = ep;
+          exitPriceSource = useLivePriceCheckbox.checked ? "spot en temps réel" : "saisi manuellement";
+        } else {
+          const target = parseInputNumber(targetReturnInput);
+          if (!isFinite(target)) {
+            return { ok: false, reason: "Renseignez un pourcentage de gain cible valide." };
+          }
+          const factor = 1 + (direction === "long" ? target / 100 : -target / 100);
+          if (factor <= 0) {
+            return { ok: false, reason: "La combinaison direction / gain cible aboutit à un prix de sortie négatif." };
+          }
+          exitPrice = entryPrice * factor;
+          exitPriceSource = `calculé à partir d'un objectif de ${target.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} %`;
+        }
+
+        const priceDiff = direction === "long" ? exitPrice - entryPrice : entryPrice - exitPrice;
+        const pnlBrut = notional * (priceDiff / entryPrice);
+
+        const feeRate = tradingFeePct > 0 ? tradingFeePct / 100 : 0;
+        const tradingFees = notional * feeRate * 2;
+
+        const hourlyFeeRate = hourlyFeePct > 0 ? hourlyFeePct / 100 : 0;
+        const fundingFees = hours > 0 && hourlyFeeRate > 0 ? notional * hourlyFeeRate * hours : 0;
+
+        const totalFees = tradingFees + fundingFees;
+        const pnlNet = pnlBrut - totalFees;
+        const newWallet = wallet + pnlNet;
+        const pnlNetPct = (pnlNet / wallet) * 100;
+
+        return {
+          ok: true,
+          wallet,
+          leverage: lev,
+          notional,
+          direction,
+          entryPrice,
+          exitPrice,
+          exitPriceSource,
+          pnlBrut,
+          tradingFees,
+          fundingFees,
+          totalFees,
+          pnlNet,
+          pnlNetPct,
+        };
+      }
+
+      function calculateAndRender() {
+        const result = computeResults();
+
+        if (!result.ok) {
+          statusMessage.textContent = result.reason;
+          statusMessage.className = "status-text muted";
+          resultsMain.style.opacity = 0.35;
+          resultsFooter.style.opacity = 0.35;
+          return;
+        }
+
+        statusMessage.textContent = "Simulation à titre indicatif uniquement (hors slippage et liquidation).";
+        statusMessage.className = "status-text";
+
+        resultsMain.style.opacity = 1;
+        resultsFooter.style.opacity = 1;
+
+        const {
+          wallet,
+          leverage,
+          notional,
+          direction,
+          entryPrice,
+          exitPrice,
+          exitPriceSource,
+          pnlBrut,
+          tradingFees,
+          fundingFees,
+          totalFees,
+          pnlNet,
+          pnlNetPct,
+        } = result;
+
+        newWalletValue.innerHTML = `<span>${formatNumber(newWallet = wallet + pnlNet, 2)} USDT</span>`;
+        initialWalletMeta.textContent = `Initial : ${formatNumber(wallet, 2)} USDT`;
+
+        let netClass = "result-value";
+        if (pnlNet > 0) netClass += " positive";
+        if (pnlNet < 0) netClass += " negative";
+
+        netGainValue.className = netClass;
+        netGainValue.innerHTML = `<span>${formatNumber(pnlNet, 2)} USDT</span>`;
+        netGainPercent.textContent = `(${formatNumber(pnlNetPct, 2)} %)`;
+
+        grossPnLMeta.textContent = `PNL brut (avant frais) : ${formatNumber(pnlBrut, 2)} USDT`;
+
+        const symbol = symbolSelect.value;
+        const dirLabel = direction === "long" ? "Long" : "Short";
+        positionSummary.textContent = `${dirLabel} ${symbol} — nominal ≈ ${formatNumber(notional, 2)} USDT (wallet ${formatNumber(wallet, 2)} × levier ${formatNumber(leverage, 2)}), entrée ${formatNumber(entryPrice, 4)} USDT.`;
+
+        let feeParts = [];
+        feeParts.push(`frais trading : ${formatNumber(tradingFees, 2)} USDT`);
+        if (fundingFees > 0) {
+          feeParts.push(`frais horaires : ${formatNumber(fundingFees, 2)} USDT`);
+        }
+        feesSummary.textContent = `${formatNumber(totalFees, 2)} USDT (${feeParts.join(" + ")})`;
+
+        exitPriceSummary.textContent = `${formatNumber(exitPrice, 4)} USDT (${exitPriceSource})`;
+
+        // Mise en évidence du sens du résultat sur la carte wallet
+        if (pnlNet > 0) {
+          walletResultCard.style.borderColor = "rgba(34, 197, 94, 0.7)";
+          walletResultCard.style.boxShadow = "0 0 0 1px rgba(34, 197, 94, 0.5), 0 18px 45px rgba(15, 23, 42, 0.9)";
+        } else if (pnlNet < 0) {
+          walletResultCard.style.borderColor = "rgba(248, 113, 113, 0.75)";
+          walletResultCard.style.boxShadow = "0 0 0 1px rgba(248, 113, 113, 0.5), 0 18px 45px rgba(15, 23, 42, 0.9)";
+        } else {
+          walletResultCard.style.borderColor = "rgba(148, 163, 184, 0.28)";
+          walletResultCard.style.boxShadow = "0 10px 30px rgba(15, 23, 42, 0.8)";
+        }
+      }
+
+      // Écouteurs sur les inputs
+      const inputsToWatch = [
+        walletInput,
+        leverageInput,
+        hourlyFeeInput,
+        hoursInput,
+        entryPriceInput,
+        exitPriceInput,
+        targetReturnInput,
+        tradingFeeInput,
+      ];
+
+      inputsToWatch.forEach((el) => {
+        ["input", "change"].forEach((evt) => {
+          el.addEventListener(evt, () => {
+            calculateAndRender();
+          });
+        });
+      });
+
+      // Initialisation
+      startPricePolling();
+      calculateAndRender();
+    })();
+  </script>
+</body>
+</html>

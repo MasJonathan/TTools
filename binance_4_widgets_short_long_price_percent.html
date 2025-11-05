@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulateur de Trading – Style Binance</title>
+  <style>
+    :root{
+      --bg:#0b0e11;         /* Binance deep dark */
+      --panel:#0e1116;      /* Panel dark */
+      --muted:#9aa4ad;      /* Muted text */
+      --text:#eaecef;       /* Primary text */
+      --accent:#f0b90b;     /* Binance yellow */
+      --accent-2:#5c7cfa;   /* Blue alt */
+      --danger:#f6465d;     /* Binance red */
+      --success:#0ecb81;    /* Binance green */
+      --warning:#f59e0b;    
+      --border:#1f2a37;     /* Border */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{margin:0; padding:32px; background:var(--bg); color:var(--text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans"; letter-spacing:.2px;}
+    .appbar{display:flex; align-items:center; gap:12px; margin:0 0 12px;}
+    h1{font-size:22px; margin:0}
+    p.lead{margin:0 0 24px; color:var(--muted)}
+
+    .grid{display:grid; gap:18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));}
+    @media (max-width: 900px){ body{padding:20px} .grid{gap:14px} }
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border:1px solid var(--border); border-radius:16px; padding:20px; position:relative; overflow:hidden; box-shadow:var(--shadow);} 
+    .card:before{content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(1200px 200px at -20% -20%, rgba(240,185,11,.08), transparent 45%);} 
+    .card h2{margin:0 0 8px; font-size:18px; display:flex; align-items:center; gap:8px}
+    .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px rgba(240,185,11,.15);} 
+    .meta{font-size:12px; color:var(--muted); margin-bottom:12px}
+
+    .row{display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px; align-items:end; margin-bottom:10px} 
+    .row .col{display:flex; flex-direction:column}
+    label{font-size:12px; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.4px}
+    input, select{appearance:none; background:#0a0d12; color:var(--text); border:1px solid #1a222d; border-radius:12px; padding:12px 12px; font-size:14px; box-shadow: inset 0 0 0 1px transparent; transition:box-shadow .15s ease, border-color .15s ease, background .15s ease; text-align:right;}
+    input:focus, select:focus{outline:none; border-color:#263445; box-shadow:0 0 0 2px rgba(240,185,11,.25);} 
+    input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+    input[type=number]{ -moz-appearance: textfield; }
+
+    .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
+    button{ background:#12161c; border:1px solid #1a222d; color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; font-size:14px; transition: transform .04s ease, background .2s ease, border-color .2s ease; }
+    button:hover{background:#0e1319; border-color:#233041}
+    button:active{transform:translateY(1px)}
+    .btn-primary{background:var(--accent); border-color:#c79206; color:#0b0e11}
+    .btn-primary:hover{background:#ffce1f; border-color:#d59b0b}
+    .btn-secondary{background:#1b232d; border-color:#263445}
+    .btn-ghost{background:transparent}
+
+    .result{margin-top:14px; padding:14px; border:1px dashed #2a3a4c; border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.03)); display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; align-items:start; font-size:14px}
+    @media (max-width: 560px){ .result{grid-template-columns:repeat(2, 1fr)} }
+    .result .metric{display:flex; flex-direction:column; gap:4px}
+    .result .value{font-size:18px; font-weight:800}
+    .result .label{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
+    .badge{font-size:12px; padding:4px 8px; border-radius:999px; display:inline-block; font-weight:800}
+    .gain{background:rgba(14,203,129,.12); color:var(--success)}
+    .loss{background:rgba(246,70,93,.12); color:var(--danger)}
+    .neutral{background:rgba(148,163,184,.12); color:#cbd5e1}
+    .mono{font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .small{font-size:12px; color:var(--muted)}
+
+    .hint{font-size:11px; color:#c6a008}
+    .sep{height:1px; background:var(--border); margin:12px 0}
+
+    /* Toolbar globale */
+    .toolbar{position:sticky; top:0; z-index:5; margin-bottom:16px; padding:14px; border:1px solid #243142; border-radius:16px; background:linear-gradient(180deg, rgba(240,185,11,.08), rgba(240,185,11,.02)); box-shadow:var(--shadow);} 
+    .toolbar h3{margin:0 0 8px; font-size:14px; color:#ffe48d}
+    .toolbar .row{margin:0}
+    .toolbar .note{font-size:12px; color:var(--muted); margin-top:8px}
+    .toolbar .actions{justify-content:flex-end}
+    .toolbar input{width:100%}
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div style="width:28px; height:28px; border-radius:6px; background:var(--accent); display:grid; place-items:center; color:#0b0e11; font-weight:900;">L</div>
+    <h1>Simulateur de Trading</h1>
+    <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+      <span class="badge neutral" style="background:rgba(154,164,173,.12); color:#cbd5e1">v1.2</span>
+    </div>
+  </header>
+  <p class="lead">Quatre widgets indépendants (long, short, prix cible long, prix cible short) organisés en grille fluide. Chaque widget accepte vos paramètres et calcule un résultat net après frais.</p>
+
+  <!-- Toolbar globale frais -->
+  <section class="toolbar" id="toolbar-fees">
+    <h3>Paramètres globaux des frais</h3>
+    <div class="row">
+      <div class="col"><label>Frais de transaction (décimal)</label><input type="number" step="0.0001" value="0.001" id="gl_frais_tx"></div>
+      <div class="col"><label>Frais de levier /h (décimal)</label><input type="number" step="0.0001" value="0.0001" id="gl_frais_levier_h"></div>
+      <div class="col"><label>Appliquer aux 4 widgets</label>
+        <div class="actions">
+          <button class="btn-primary" id="btn-apply-fees">Appliquer</button>
+          <button class="btn-ghost" id="btn-reset-fees">Réinitialiser</button>
+        </div>
+      </div>
+    </div>
+    <div class="note">Astuce : ces valeurs sont copiées dans chaque widget. Vous pouvez ensuite affiner localement si nécessaire.</div>
+  </section>
+
+  <div class="grid">
+    <!-- 1) LONG -->
+    <section class="card" id="card-long">
+      <h2><span class="dot"></span> Position Long <span class="badge neutral" style="margin-left:6px">x<span data-badge-levier-long>5</span></span></h2>
+      <div class="meta">Calcule le <strong>wallet final</strong> après une position acheteuse avec levier et frais.</div>
+      <div class="row">
+        <div class="col"><label>Wallet initial (€)</label><input type="number" step="0.01" value="100" data-key="wallet"></div>
+        <div class="col"><label>Prix d'entrée</label><input type="number" step="0.0001" value="8.42" data-key="entree"></div>
+        <div class="col"><label>Prix de sortie</label><input type="number" step="0.0001" value="8.46" data-key="sortie"></div>
+        <div class="col"><label>Levier (×)</label><input type="number" step="0.1" value="5" data-key="levier"></div>
+        <div class="col"><label>Frais tx (déc.)</label><input type="number" step="0.0001" value="0.001" data-key="frais_tx"></div>
+        <div class="col"><label>Frais levier /h (déc.)</label><input type="number" step="0.0001" value="0.0001" data-key="frais_levier_h"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Durée (h)</label><input type="number" step="0.1" value="1" data-key="duree"></div>
+        <div class="col"><span class="hint">Ex. frais 0,1% ⇒ 0.001</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" data-action="calc">Calculer</button>
+        <button class="btn-ghost" data-action="reset">Réinitialiser</button>
+      </div>
+      <div class="result mono">
+        <div class="metric"><div class="label">Wallet final</div><div class="value">€ <span data-out="wallet_final">—</span></div></div>
+        <div class="metric"><div class="label">Profit net</div><div class="value"><span data-out="profit_net">—</span> €</div></div>
+        <div class="metric"><div class="label">Variation</div><div class="value"><span class="badge neutral" data-out="pct">—</span></div></div>
+        <div class="metric"><div class="label">Frais</div><div class="value small">tx <span data-out="f_tx">—</span> € · levier <span data-out="f_levier">—</span> €</div></div>
+      </div>
+    </section>
+
+    <!-- 2) SHORT -->
+    <section class="card" id="card-short">
+      <h2><span class="dot"></span> Position Short <span class="badge neutral" style="margin-left:6px">x<span data-badge-levier-short>5</span></span></h2>
+      <div class="meta">Calcule le <strong>wallet final</strong> après une position vendeuse avec levier et frais.</div>
+      <div class="row">
+        <div class="col"><label>Wallet initial (€)</label><input type="number" step="0.01" value="100" data-key="wallet"></div>
+        <div class="col"><label>Prix d'entrée (vente)</label><input type="number" step="0.0001" value="8.46" data-key="entree"></div>
+        <div class="col"><label>Prix de rachat</label><input type="number" step="0.0001" value="8.5" data-key="sortie"></div>
+        <div class="col"><label>Levier (×)</label><input type="number" step="0.1" value="5" data-key="levier"></div>
+        <div class="col"><label>Frais tx (déc.)</label><input type="number" step="0.0001" value="0.001" data-key="frais_tx"></div>
+        <div class="col"><label>Frais levier /h (déc.)</label><input type="number" step="0.0001" value="0.0001" data-key="frais_levier_h"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Durée (h)</label><input type="number" step="0.1" value="1" data-key="duree"></div>
+        <div class="col"><span class="hint">Frais totaux = 2×tx + levier×durée</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" data-action="calc">Calculer</button>
+        <button class="btn-ghost" data-action="reset">Réinitialiser</button>
+      </div>
+      <div class="result mono">
+        <div class="metric"><div class="label">Wallet final</div><div class="value">€ <span data-out="wallet_final">—</span></div></div>
+        <div class="metric"><div class="label">Profit net</div><div class="value"><span data-out="profit_net">—</span> €</div></div>
+        <div class="metric"><div class="label">Variation</div><div class="value"><span class="badge neutral" data-out="pct">—</span></div></div>
+        <div class="metric"><div class="label">Frais</div><div class="value small">tx <span data-out="f_tx">—</span> € · levier <span data-out="f_levier">—</span> €</div></div>
+      </div>
+    </section>
+
+    <!-- 3) PRIX CIBLE LONG -->
+    <section class="card" id="card-target-long">
+      <h2><span class="dot"></span> Prix de sortie cible – Long <span class="badge neutral" style="margin-left:6px">x<span data-badge-levier-tlong>5</span></span></h2>
+      <div class="meta">À partir d'un <strong>gain cible (%)</strong>, calcule le prix de sortie requis et l'impact sur le wallet.</div>
+      <div class="row">
+        <div class="col"><label>Wallet initial (€)</label><input type="number" step="0.01" value="100" data-key="wallet"></div>
+        <div class="col"><label>Prix d'entrée</label><input type="number" step="0.0001" value="8.42" data-key="entree"></div>
+        <div class="col"><label>Gain cible (%)</label><input type="number" step="0.01" value="1" data-key="gain_pct"></div>
+        <div class="col"><label>Levier (×)</label><input type="number" step="0.1" value="5" data-key="levier"></div>
+        <div class="col"><label>Frais tx (déc.)</label><input type="number" step="0.0001" value="0.001" data-key="frais_tx"></div>
+        <div class="col"><label>Frais levier /h (déc.)</label><input type="number" step="0.0001" value="0.0001" data-key="frais_levier_h"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Durée (h)</label><input type="number" step="0.1" value="1" data-key="duree"></div>
+        <div class="col"><span class="hint">La cible est exprimée sur le wallet, net de frais.</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" data-action="calc">Calculer</button>
+        <button class="btn-ghost" data-action="reset">Réinitialiser</button>
+      </div>
+      <div class="result mono">
+        <div class="metric"><div class="label">Prix cible</div><div class="value"><span data-out="prix_cible">—</span></div></div>
+        <div class="metric"><div class="label">Wallet si atteint</div><div class="value">€ <span data-out="wallet_final">—</span></div></div>
+        <div class="metric"><div class="label">Profit net</div><div class="value"><span data-out="profit_net">—</span> €</div></div>
+        <div class="metric"><div class="label">Frais estimés</div><div class="value small">tx <span data-out="f_tx">—</span> € · levier <span data-out="f_levier">—</span> €</div></div>
+      </div>
+    </section>
+
+    <!-- 4) PRIX CIBLE SHORT -->
+    <section class="card" id="card-target-short">
+      <h2><span class="dot"></span> Prix de rachat cible – Short <span class="badge neutral" style="margin-left:6px">x<span data-badge-levier-tshort>5</span></span></h2>
+      <div class="meta">À partir d'un <strong>gain cible (%)</strong>, calcule le prix de rachat requis et l'impact sur le wallet.</div>
+      <div class="row">
+        <div class="col"><label>Wallet initial (€)</label><input type="number" step="0.01" value="100" data-key="wallet"></div>
+        <div class="col"><label>Prix d'entrée (vente)</label><input type="number" step="0.0001" value="8.46" data-key="entree"></div>
+        <div class="col"><label>Gain cible (%)</label><input type="number" step="0.01" value="1" data-key="gain_pct"></div>
+        <div class="col"><label>Levier (×)</label><input type="number" step="0.1" value="5" data-key="levier"></div>
+        <div class="col"><label>Frais tx (déc.)</label><input type="number" step="0.0001" value="0.001" data-key="frais_tx"></div>
+        <div class="col"><label>Frais levier /h (déc.)</label><input type="number" step="0.0001" value="0.0001" data-key="frais_levier_h"></div>
+      </div>
+      <div class="row">
+        <div class="col"><label>Durée (h)</label><input type="number" step="0.1" value="1" data-key="duree"></div>
+        <div class="col"><span class="hint">Les coûts de maintien de levier sont proratisés sur la durée.</span></div>
+      </div>
+      <div class="actions">
+        <button class="btn-secondary" data-action="calc">Calculer</button>
+        <button class="btn-ghost" data-action="reset">Réinitialiser</button>
+      </div>
+      <div class="result mono">
+        <div class="metric"><div class="label">Prix cible</div><div class="value"><span data-out="prix_cible">—</span></div></div>
+        <div class="metric"><div class="label">Wallet si atteint</div><div class="value">€ <span data-out="wallet_final">—</span></div></div>
+        <div class="metric"><div class="label">Profit net</div><div class="value"><span data-out="profit_net">—</span> €</div></div>
+        <div class="metric"><div class="label">Frais estimés</div><div class="value small">tx <span data-out="f_tx">—</span> € · levier <span data-out="f_levier">—</span> €</div></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="sep"></div>
+  <p class="small">Méthodologie : <span class="mono">montant_investi = wallet × levier</span> ; <span class="mono">profit_brut_long = (P<sub>sortie</sub> − P<sub>entrée</sub>) × montant_investi / P<sub>entrée</sub></span> ; <span class="mono">profit_brut_short = (P<sub>entrée</sub> − P<sub>sortie</sub>) × montant_investi / P<sub>entrée</sub></span> ; frais = <span class="mono">2×tx×montant_investi + levier_h×durée×montant_investi</span>. Résultat net = profit_brut − frais ; wallet final = wallet + résultat net.</p>
+
+  <script>
+    // --- Utilitaires ---
+    const q = (sel, root=document) => root.querySelector(sel);
+    const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const fmt = (x, d=3) => (Number.isFinite(x) ? x.toFixed(d) : "—");
+
+    function readInputs(card){
+      const get = key => parseFloat(q(`input[data-key="${key}"]`, card).value);
+      const data = {
+        wallet: get('wallet'),
+        entree: get('entree'),
+        sortie: q('input[data-key="sortie"]', card) ? get('sortie') : null,
+        levier: get('levier'),
+        frais_tx: get('frais_tx'),
+        frais_levier_h: get('frais_levier_h'),
+        duree: get('duree'),
+        gain_pct: q('input[data-key="gain_pct"]', card) ? get('gain_pct') : null,
+      };
+      return data;
+    }
+
+    function fraisTotaux(montant, frais_tx, frais_levier_h, duree){
+      const tx = montant * (frais_tx * 2);
+      const lev = montant * (frais_levier_h * duree);
+      return {tx, lev, total: tx + lev};
+    }
+
+    // --- Formules (parité avec la version Python) ---
+    function tradeLong(wallet, pEntree, pSortie, levier, frais_tx=0.001, frais_levier_h=0.0001, duree=1){
+      const montant = wallet * levier;
+      const profit_brut = (pSortie - pEntree) * montant / pEntree;
+      const {tx, lev, total} = fraisTotaux(montant, frais_tx, frais_levier_h, duree);
+      const profit_net = profit_brut - total;
+      const wallet_final = wallet + profit_net;
+      return {wallet_final, profit_net, f_tx: tx, f_levier: lev};
+    }
+
+    function tradeShort(wallet, pEntree, pSortie, levier, frais_tx=0.001, frais_levier_h=0.0001, duree=1){
+      const montant = wallet * levier;
+      const profit_brut = (pEntree - pSortie) * montant / pEntree;
+      const {tx, lev, total} = fraisTotaux(montant, frais_tx, frais_levier_h, duree);
+      const profit_net = profit_brut - total;
+      const wallet_final = wallet + profit_net;
+      return {wallet_final, profit_net, f_tx: tx, f_levier: lev};
+    }
+
+    function prixSortiePourGain(wallet, pEntree, levier, gainCiblePct, frais_tx=0.001, frais_levier_h=0.0001, duree=1, type='long'){
+      const montant = wallet * levier;
+      const frais_total = montant * (frais_tx * 2 + frais_levier_h * duree);
+      let pSortie;
+      if(type === 'long'){
+        pSortie = ((gainCiblePct * wallet) + frais_total) * pEntree / montant + pEntree;
+      } else if(type === 'short'){
+        pSortie = pEntree - ((gainCiblePct * wallet + frais_total) * pEntree / montant);
+      } else {
+        throw new Error("type doit être 'long' ou 'short'");
+      }
+      return {pSortie, montant, frais_total};
+    }
+
+    function updateResultBox(card, result, mode){
+      const wallet_final = result.wallet_final;
+      const profit_net = result.profit_net;
+      const pct = (wallet_final / readInputs(card).wallet - 1) * 100;
+      q('[data-out="wallet_final"]', card).textContent = fmt(wallet_final, 3);
+      q('[data-out="profit_net"]', card).textContent = fmt(profit_net, 3);
+      q('[data-out="f_tx"]', card).textContent = fmt(result.f_tx, 3);
+      q('[data-out="f_levier"]', card).textContent = fmt(result.f_levier, 3);
+      const badge = q('[data-out="pct"]', card);
+      if(badge){
+        badge.textContent = `${fmt(pct, 3)} %`;
+        badge.className = 'badge ' + (pct>0? 'gain' : (pct<0? 'loss':'neutral'));
+      }
+    }
+
+    // --- Wiring: LONG ---
+    (function(){
+      const card = q('#card-long');
+      const calc = () => {
+        const d = readInputs(card);
+        const res = tradeLong(d.wallet, d.entree, d.sortie, d.levier, d.frais_tx, d.frais_levier_h, d.duree);
+        updateResultBox(card, res);
+      };
+      q('[data-action="calc"]', card).addEventListener('click', calc);
+      qa('input', card).forEach(inp => inp.addEventListener('input', calc));
+      q('[data-action="reset"]', card).addEventListener('click', () => { qa('input', card).forEach((el)=>{ el.value = el.getAttribute('value');}); calc(); });
+      calc();
+    })();
+
+    // --- Wiring: SHORT ---
+    (function(){
+      const card = q('#card-short');
+      const calc = () => {
+        const d = readInputs(card);
+        const res = tradeShort(d.wallet, d.entree, d.sortie, d.levier, d.frais_tx, d.frais_levier_h, d.duree);
+        updateResultBox(card, res);
+      };
+      q('[data-action="calc"]', card).addEventListener('click', calc);
+      qa('input', card).forEach(inp => inp.addEventListener('input', calc));
+      q('[data-action="reset"]', card).addEventListener('click', () => { qa('input', card).forEach((el)=>{ el.value = el.getAttribute('value');}); calc(); });
+      calc();
+    })();
+
+    // --- Wiring: TARGET LONG ---
+    (function(){
+      const card = q('#card-target-long');
+      const calc = () => {
+        const d = readInputs(card);
+        const r = prixSortiePourGain(d.wallet, d.entree, d.levier, (d.gain_pct??0)/100, d.frais_tx, d.frais_levier_h, d.duree, 'long');
+        const sim = tradeLong(d.wallet, d.entree, r.pSortie, d.levier, d.frais_tx, d.frais_levier_h, d.duree);
+        q('[data-out="prix_cible"]', card).textContent = fmt(r.pSortie, 3);
+        q('[data-out="wallet_final"]', card).textContent = fmt(sim.wallet_final, 3);
+        q('[data-out="profit_net"]', card).textContent = fmt(sim.profit_net, 3);
+        q('[data-out="f_tx"]', card).textContent = fmt(sim.f_tx, 3);
+        q('[data-out="f_levier"]', card).textContent = fmt(sim.f_levier, 3);
+      };
+      q('[data-action="calc"]', card).addEventListener('click', calc);
+      qa('input', card).forEach(inp => inp.addEventListener('input', calc));
+      q('[data-action="reset"]', card).addEventListener('click', () => { qa('input', card).forEach((el)=>{ el.value = el.getAttribute('value');}); calc(); });
+      calc();
+    })();
+
+    // --- Wiring: TARGET SHORT ---
+    (function(){
+      const card = q('#card-target-short');
+      const calc = () => {
+        const d = readInputs(card);
+        const r = prixSortiePourGain(d.wallet, d.entree, d.levier, (d.gain_pct??0)/100, d.frais_tx, d.frais_levier_h, d.duree, 'short');
+        const sim = tradeShort(d.wallet, d.entree, r.pSortie, d.levier, d.frais_tx, d.frais_levier_h, d.duree);
+        q('[data-out="prix_cible"]', card).textContent = fmt(r.pSortie, 3);
+        q('[data-out="wallet_final"]', card).textContent = fmt(sim.wallet_final, 3);
+        q('[data-out="profit_net"]', card).textContent = fmt(sim.profit_net, 3);
+        q('[data-out="f_tx"]', card).textContent = fmt(sim.f_tx, 3);
+        q('[data-out="f_levier"]', card).textContent = fmt(sim.f_levier, 3);
+      };
+      q('[data-action="calc"]', card).addEventListener('click', calc);
+      qa('input', card).forEach(inp => inp.addEventListener('input', calc));
+      q('[data-action="reset"]', card).addEventListener('click', () => { qa('input', card).forEach((el)=>{ el.value = el.getAttribute('value');}); calc(); });
+      calc();
+    })();
+
+    // --- Toolbar globale: synchronisation des frais ---
+    (function(){
+      const inpTx = q('#gl_frais_tx');
+      const inpLev = q('#gl_frais_levier_h');
+      const apply = () => {
+        const tx = parseFloat(inpTx.value);
+        const lv = parseFloat(inpLev.value);
+        ['#card-long','#card-short','#card-target-long','#card-target-short'].forEach(id=>{
+          const card = q(id);
+          const inTx = q('input[data-key="frais_tx"]', card);
+          const inLv = q('input[data-key="frais_levier_h"]', card);
+          if(inTx){ inTx.value = tx; inTx.dispatchEvent(new Event('input')); }
+          if(inLv){ inLv.value = lv; inLv.dispatchEvent(new Event('input')); }
+        });
+      };
+      const reset = () => { inpTx.value = '0.001'; inpLev.value = '0.0001'; apply(); };
+      q('#btn-apply-fees').addEventListener('click', apply);
+      q('#btn-reset-fees').addEventListener('click', reset);
+      inpTx.addEventListener('input', apply);
+      inpLev.addEventListener('input', apply);
+      apply();
+    })();
+
+    // Mise à jour des badges de levier (style Binance)
+    function bindLevierBadges(){
+      const map = [
+        ['#card-long','[data-badge-levier-long]'],
+        ['#card-short','[data-badge-levier-short]'],
+        ['#card-target-long','[data-badge-levier-tlong]'],
+        ['#card-target-short','[data-badge-levier-tshort]']
+      ];
+      map.forEach(([cardSel, badgeSel])=>{
+        const card = q(cardSel);
+        const lev = q('input[data-key="levier"]', card);
+        const badge = q(badgeSel, card);
+        const upd = ()=>{ if(badge && lev){ badge.textContent = lev.value; } };
+        if(lev){ lev.addEventListener('input', upd); upd(); }
+      });
+    }
+    bindLevierBadges();
+  </script>
+</body>
+</html>

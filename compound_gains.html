@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulateur de gains en trading — courbe & stats</title>
+  <style>
+    :root{--bg:#0f1221;--panel:#151936;--muted:#7d86b2;--text:#e8ebff;--accent:#6aa1ff;--accent2:#70f0c9;--danger:#ff6b6b}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0c1020, #0d1430 40%, #0f1221);color:var(--text);font:500 15px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;}
+    header{padding:28px 20px 10px; max-width:1200px; margin:0 auto}
+    h1{font-size:24px;margin:0 0 6px}
+    p.subtitle{margin:0;color:var(--muted)}
+
+    .container{max-width:1200px;margin:14px auto 40px;padding:0 20px;display:grid;grid-template-columns:360px 1fr;gap:16px}
+    @media (max-width: 980px){.container{grid-template-columns:1fr}}
+
+    .card{background:linear-gradient(180deg,var(--panel),#101330);border:1px solid #1e2452;border-radius:16px;box-shadow:0 6px 30px rgba(0,0,0,.25);}
+    .card .hd{padding:14px 16px;border-bottom:1px solid #1f2551;display:flex;align-items:center;justify-content:space-between}
+    .card .hd h2{font-size:15px;margin:0;color:#cfd7ff;letter-spacing:.2px}
+    .card .bd{padding:14px 16px}
+
+    form .row{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;margin-bottom:10px}
+    form label{color:#c2c8f2}
+    .hint{font-size:12px;color:var(--muted)}
+
+    input[type="number"], input[type="text"], select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #26307a;background:#0c1130;color:var(--text)}
+    input[type="range"]{width:100%}
+    .inline{display:flex;gap:8px;align-items:center}
+
+    .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    button{cursor:pointer;padding:10px 14px;border-radius:12px;border:1px solid #26307a;background:#10163d;color:var(--text);}
+    button.primary{background:linear-gradient(180deg,#1b49ff,#0039cc);border-color:#3155ff}
+    button.ghost{background:transparent}
+
+    /* Chart */
+    .chart-wrap{position:relative;height:520px}
+    svg{width:100%;height:100%;display:block;border-radius:12px}
+    .grid line{stroke:#26307a;opacity:.5}
+    .axis text{fill:#aeb7f8;font-size:12px}
+    .line-gain{fill:none;stroke:var(--accent);stroke-width:2.25}
+    .line-loss{fill:none;stroke:var(--danger);stroke-width:2;opacity:.0}
+    .path-full{fill:none;stroke:url(#line-grad);stroke-width:2.8}
+    .point{fill:var(--accent2);stroke:#0a0e26;stroke-width:1.5}
+    .tooltip{position:absolute;background:#0b1030;border:1px solid #27307a;border-radius:10px;padding:8px 10px;color:#e6e9ff;pointer-events:none;font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+    .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:8px;color:#cbd2ff}
+    .legend span{display:inline-flex;align-items:center;gap:6px}
+    .swatch{width:14px;height:3px;border-radius:2px;display:inline-block}
+
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media (max-width:700px){.metrics{grid-template-columns:1fr 1fr}}
+    .metric{padding:10px 12px;border:1px solid #24307c;background:#0c1130;border-radius:12px}
+    .metric .k{font-size:12px;color:#aab4ff}
+    .metric .v{font-size:18px;margin-top:2px}
+    .muted{color:var(--muted)}
+    .sep{height:1px;background:#1f2551;margin:12px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Simulateur de gains en trading</h1>
+    <p class="subtitle">Modélisez une stratégie simple : taux de réussite, gain <em>g%</em> et perte <em>p%</em> par trade, avec composition. Visualisation intrajournalière : première portion en gains, seconde en pertes.</p>
+  </header>
+
+  <main class="container">
+    <!-- Panneau de configuration -->
+    <section class="card">
+      <div class="hd"><h2>Paramètres</h2></div>
+      <div class="bd">
+        <form id="cfg">
+          <div class="row"><label for="capital">Capital initial (€)</label><input id="capital" type="number" step="0.01" value="100"></div>
+          <div class="row"><label for="jours">Nombre de jours</label><input id="jours" type="number" step="1" value="30" min="1"></div>
+          <div class="row"><label for="trades">Trades par jour</label><input id="trades" type="number" step="1" value="10" min="1"></div>
+          <div class="row"><label for="win">Taux de réussite (%)</label><input id="win" type="number" step="0.1" value="60" min="0" max="100"></div>
+          <div class="row"><label for="g">Gain par trade (g %)</label><input id="g" type="number" step="0.1" value="1.5" min="0"></div>
+          <div class="row"><label for="p">Perte par trade (p %)</label><input id="p" type="number" step="0.1" value="1" min="0"></div>
+          <div class="row"><label for="ordre">Ordre intrajournalier</label>
+            <select id="ordre">
+              <option value="det">Gains puis pertes (déterministe)</option>
+              <option value="rand">Ordre aléatoire (même ratio)</option>
+            </select>
+          </div>
+          <div class="row"><label for="seed">Graine aléatoire (facultatif)</label><input id="seed" type="text" placeholder="Ex : 42"></div>
+          <div class="btns">
+            <button class="primary" type="button" id="run">Lancer la simulation</button>
+            <button type="button" id="reset">Réinitialiser</button>
+            <button class="ghost" type="button" id="exportCsv">Exporter CSV</button>
+          </div>
+        </form>
+
+        <div class="sep"></div>
+        <div class="metrics" id="metrics">
+          <div class="metric"><div class="k">Capital final</div><div class="v" id="m_final">—</div><div class="muted" id="m_final_pct"> </div></div>
+          <div class="metric"><div class="k">Rendement/jour (médian)</div><div class="v" id="m_med">—</div><div class="muted">sur trades composés</div></div>
+          <div class="metric"><div class="k">Expectancy par trade</div><div class="v" id="m_exp">—</div><div class="muted" id="m_logexp"> </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Graphique -->
+    <section class="card">
+      <div class="hd"><h2>Courbe du capital</h2></div>
+      <div class="bd">
+        <div class="chart-wrap">
+          <svg id="chart" viewBox="0 0 900 520" preserveAspectRatio="none" aria-label="Évolution du capital">
+            <defs>
+              <linearGradient id="line-grad" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="var(--accent)"/>
+                <stop offset="100%" stop-color="var(--accent2)"/>
+              </linearGradient>
+            </defs>
+            <g class="grid" id="grid"></g>
+            <g class="axis" id="axisY"></g>
+            <g class="axis" id="axisX"></g>
+            <polyline class="path-full" id="path" points="" />
+            <g id="pts"></g>
+          </svg>
+          <div class="tooltip" id="tt" style="display:none"></div>
+        </div>
+        <div class="legend"><span><i class="swatch" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></i>Capital composé</span><span class="muted">Survoler pour voir le détail trade par trade</span></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ---------- Utilitaires ----------
+    const $ = (q)=>document.querySelector(q);
+    function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+
+    // Graine -> PRNG simple (Mulberry32)
+    function mulberry32(a){return function(){let t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+    function strToSeed(str){let h=1779033703;for(let i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h|=0}return h>>>0}
+
+    // Formatage
+    const fmtEUR = new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+    const fmtPct = (x)=> (x>=0?'+':'') + (x*100).toFixed(2)+'%';
+
+    // Stat helpers
+    const median = arr => {const a=[...arr].sort((x,y)=>x-y);const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}
+
+    // ---------- Simulation ----------
+    function simulate({capital, jours, trades, win, g, p, ordre, seed}){
+      const path=[capital];
+      const dayReturns=[]; // multiplicateurs quotidiens
+      const tradeReturns=[]; // multiplicateurs trade par trade
+      let rng = seed? mulberry32(strToSeed(seed)) : Math.random;
+
+      for(let d=0; d<jours; d++){
+        const wins = Math.round(trades * win);
+        const losses = trades - wins;
+        const seq = [];
+        // Construire l'ordre intrajour
+        if(ordre==='det'){
+          for(let i=0;i<wins;i++) seq.push(1+g);
+          for(let i=0;i<losses;i++) seq.push(1-p);
+        } else {
+          for(let i=0;i<wins;i++) seq.push(1+g);
+          for(let i=0;i<losses;i++) seq.push(1-p);
+          // mélange Fisher–Yates déterminé par RNG
+          for(let i=seq.length-1;i>0;i--){const j=Math.floor(rng()* (i+1));[seq[i],seq[j]]=[seq[j],seq[i]]}
+        }
+
+        // Appliquer les trades de la journée
+        let capitalJour = path[path.length-1];
+        for(const mult of seq){
+          capitalJour *= mult;
+          path.push(capitalJour);
+          tradeReturns.push(mult);
+        }
+        dayReturns.push(seq.reduce((a,b)=>a*b,1));
+      }
+
+      return {path, dayReturns, tradeReturns};
+    }
+
+    // ---------- Tracé SVG ----------
+    function renderChart(values, tradesParJour){
+      const svg = document.getElementById('chart');
+      const grid = document.getElementById('grid');
+      const axisY = document.getElementById('axisY');
+      const axisX = document.getElementById('axisX');
+      const ptsG = document.getElementById('pts');
+      const pathEl = document.getElementById('path');
+      const tt = document.getElementById('tt');
+
+      const W = svg.viewBox.baseVal.width; // 900
+      const H = svg.viewBox.baseVal.height; // 520
+      const PAD = {l:64, r:16, t:16, b:36};
+
+      const n = values.length;
+      const xs = (i)=> PAD.l + (i/(n-1)) * (W - PAD.l - PAD.r);
+      const minV = Math.min(...values);
+      const maxV = Math.max(...values);
+      const yScale = (v)=> PAD.t + (1 - (v - minV)/(maxV - minV || 1)) * (H - PAD.t - PAD.b);
+
+      // Grid & axes
+      grid.innerHTML = '';
+      axisY.innerHTML = '';
+      axisX.innerHTML = '';
+      const linesY = 5;
+      for(let i=0;i<=linesY;i++){
+        const y = PAD.t + i*(H-PAD.t-PAD.b)/linesY;
+        const val = maxV - i*(maxV-minV)/linesY;
+        grid.insertAdjacentHTML('beforeend',`<line x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}"/>`);
+        axisY.insertAdjacentHTML('beforeend',`<text x="${PAD.l-10}" y="${y+4}" text-anchor="end">${fmtEUR.format(val)}</text>`);
+      }
+
+      // Marques de jours sur l'axe X
+      const totalTrades = n-1;
+      const jours = Math.floor(totalTrades / tradesParJour);
+      for(let d=0; d<=jours; d++){
+        const i = d*tradesParJour;
+        const x = xs(i);
+        axisX.insertAdjacentHTML('beforeend',`<text x="${x}" y="${H-8}" text-anchor="middle">J${d}</text>`);
+        grid.insertAdjacentHTML('beforeend',`<line x1="${x}" y1="${PAD.t}" x2="${x}" y2="${H-PAD.b}"/>`);
+      }
+
+      // Path
+      const pts = values.map((v,i)=>`${xs(i)},${yScale(v)}`).join(' ');
+      pathEl.setAttribute('points', pts);
+
+      // Points interactifs (échantillonnage pour performance si beaucoup de trades)
+      ptsG.innerHTML='';
+      const step = Math.max(1, Math.floor(values.length/400));
+      for(let i=0;i<values.length;i+=step){
+        const v=values[i];
+        const cx=xs(i), cy=yScale(v);
+        const el=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        el.setAttribute('class','point');
+        el.setAttribute('r','3');
+        el.setAttribute('cx',cx);
+        el.setAttribute('cy',cy);
+        el.addEventListener('mousemove',(e)=>{
+          const tradeIndex = i; // 0 = départ
+          tt.style.display='block';
+          tt.style.left=(e.clientX+14)+'px';
+          tt.style.top=(e.clientY+14)+'px';
+          tt.innerHTML = `<b>${fmtEUR.format(v)}</b><br><span class="muted">Trade #${tradeIndex}</span>`;
+        });
+        el.addEventListener('mouseleave',()=> tt.style.display='none');
+        ptsG.appendChild(el);
+      }
+    }
+
+    // ---------- Calculs & UI ----------
+    function run(){
+      const capital = parseFloat($('#capital').value)||100;
+      const jours = clamp(parseInt($('#jours').value)||30,1,1000);
+      const trades = clamp(parseInt($('#trades').value)||10,1,500);
+      const win = clamp(parseFloat($('#win').value)/100,0,1);
+      const g = Math.max(0,(parseFloat($('#g').value)||0)/100);
+      const p = Math.max(0,(parseFloat($('#p').value)||0)/100);
+      const ordre = $('#ordre').value;
+      const seed = ($('#seed').value||'').trim();
+
+      const {path, dayReturns, tradeReturns} = simulate({capital, jours, trades, win, g, p, ordre, seed: seed||undefined});
+
+      // Metrics
+      const final = path[path.length-1];
+      const perf = (final/capital)-1;
+      $('#m_final').textContent = fmtEUR.format(final);
+      $('#m_final_pct').textContent = fmtPct(perf);
+
+      const dayLogRets = dayReturns.map(x=>Math.log(x));
+      const medDaily = Math.exp(median(dayLogRets))-1;
+      $('#m_med').textContent = fmtPct(medDaily);
+
+      // Expectancy simple (additive) et log (géométrique)
+      const E_add = win*g - (1-win)*p; // approx. moyenne du % par trade
+      const E_log = win*Math.log(1+g) + (1-win)*Math.log(1-p); // par trade
+      $('#m_exp').textContent = fmtPct(E_add);
+      $('#m_logexp').textContent = `log-expectancy : ${fmtPct(Math.exp(E_log)-1)} par trade`;
+
+      renderChart(path, trades);
+
+      // Accrocher export
+      $('#exportCsv').onclick = ()=> exportCSV(path, trades);
+    }
+
+    function reset(){
+      $('#cfg').reset();
+      $('#capital').value=100; $('#jours').value=30; $('#trades').value=10; $('#win').value=60; $('#g').value=1.5; $('#p').value=1; $('#ordre').value='det';
+      $('#metrics .v').forEach?.(()=>{});
+      $('#m_final').textContent='—'; $('#m_final_pct').textContent=''; $('#m_med').textContent='—'; $('#m_exp').textContent='—'; $('#m_logexp').textContent='';
+      renderChart([100], 1);
+    }
+
+    function exportCSV(path, trades){
+      const rows = [];
+      rows.push(['IndexTrade','Jour','Capital']);
+      for(let i=0;i<path.length;i++){
+        const day = Math.floor(i / trades);
+        rows.push([i, day, path[i].toFixed(2)]);
+      }
+      const csv = rows.map(r=>r.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'simulation_trading.csv'; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Events
+    document.getElementById('run').addEventListener('click', run);
+    document.getElementById('reset').addEventListener('click', reset);
+
+    // Premier rendu
+    renderChart([100], 1);
+  </script>
+</body>
+</html>
