@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="jfyFkq" name="ChartingView" projectType="guiapp" useAppConfig="1"
+              addUsingNamespaceToJuceHeader="1" jucerFormatVersion="1" projectLineFeed="&#10;"
+              cppLanguageStandard="20">
+  <MAINGROUP id="g6aeqM" name="ChartingView">
+    <GROUP id="{DD4F0A2D-C094-4008-BC80-0F854D867019}" name="Source">
+      <GROUP id="{4D06DB40-B2D3-431F-997B-A80536D7917D}" name="core">
+        <GROUP id="{B1B924BB-CA3F-0DD3-0D3F-63110366AE97}" name="utils">
+          <FILE id="fmYqGa" name="AnimationCurve.cpp" compile="1" resource="0"
+                file="Source/core/utils/AnimationCurve.cpp"/>
+          <FILE id="X8p7qz" name="AnimationCurve.h" compile="0" resource="0"
+                file="Source/core/utils/AnimationCurve.h"/>
+          <FILE id="PAivHV" name="AsyncResizer.cpp" compile="1" resource="0"
+                file="Source/core/utils/AsyncResizer.cpp"/>
+          <FILE id="k4j7sW" name="AsyncResizer.h" compile="0" resource="0" file="Source/core/utils/AsyncResizer.h"/>
+          <FILE id="WflWgO" name="AsyncUpdaterLambda.cpp" compile="1" resource="0"
+                file="Source/core/utils/AsyncUpdaterLambda.cpp"/>
+          <FILE id="Ms8IIm" name="AsyncUpdaterLambda.h" compile="0" resource="0"
+                file="Source/core/utils/AsyncUpdaterLambda.h"/>
+          <FILE id="h1bi10" name="ThreadLambda.cpp" compile="1" resource="0"
+                file="Source/core/utils/ThreadLambda.cpp"/>
+          <FILE id="O3eT3p" name="ThreadLambda.h" compile="0" resource="0" file="Source/core/utils/ThreadLambda.h"/>
+          <FILE id="pFGw36" name="TimerLambda.cpp" compile="1" resource="0" file="Source/core/utils/TimerLambda.cpp"/>
+          <FILE id="HG8iTA" name="TimerLambda.h" compile="0" resource="0" file="Source/core/utils/TimerLambda.h"/>
+        </GROUP>
+        <GROUP id="{97743EFA-5BF0-35C9-D1AB-53FB8C3005BD}" name="widgets">
+          <GROUP id="{1ABD3269-9C22-F8B4-CBA6-2152B9C18397}" name="layout">
+            <FILE id="FYwysx" name="WFlexLayout.cpp" compile="1" resource="0" file="Source/core/widgets/layout/WFlexLayout.cpp"/>
+            <FILE id="WiVcmj" name="WFlexLayout.h" compile="0" resource="0" file="Source/core/widgets/layout/WFlexLayout.h"/>
+            <FILE id="BysmGO" name="WLayout.cpp" compile="1" resource="0" file="Source/core/widgets/layout/WLayout.cpp"/>
+            <FILE id="qD8OjS" name="WLayout.h" compile="0" resource="0" file="Source/core/widgets/layout/WLayout.h"/>
+          </GROUP>
+          <GROUP id="{5009B02B-F947-3054-1C20-373016F148DD}" name="ui">
+            <FILE id="koLqbr" name="BaseComponent.cpp" compile="1" resource="0"
+                  file="Source/core/widgets/ui/BaseComponent.cpp"/>
+            <FILE id="Kph5Pq" name="BaseComponent.h" compile="0" resource="0" file="Source/core/widgets/ui/BaseComponent.h"/>
+            <FILE id="r7tGPt" name="PanelComponent.cpp" compile="1" resource="0"
+                  file="Source/core/widgets/ui/PanelComponent.cpp"/>
+            <FILE id="WikCjd" name="PanelComponent.h" compile="0" resource="0"
+                  file="Source/core/widgets/ui/PanelComponent.h"/>
+            <FILE id="tudjFL" name="WButton.cpp" compile="1" resource="0" file="Source/core/widgets/ui/WButton.cpp"/>
+            <FILE id="AiPFxs" name="WButton.h" compile="0" resource="0" file="Source/core/widgets/ui/WButton.h"/>
+            <FILE id="yAlIy6" name="WColorSurface.cpp" compile="1" resource="0"
+                  file="Source/core/widgets/ui/WColorSurface.cpp"/>
+            <FILE id="boEcy1" name="WColorSurface.h" compile="0" resource="0" file="Source/core/widgets/ui/WColorSurface.h"/>
+            <FILE id="A2gBSc" name="WidgetComponent.cpp" compile="1" resource="0"
+                  file="Source/core/widgets/ui/WidgetComponent.cpp"/>
+            <FILE id="cOmmFU" name="WidgetComponent.h" compile="0" resource="0"
+                  file="Source/core/widgets/ui/WidgetComponent.h"/>
+            <FILE id="eTI1Oo" name="WLabel.cpp" compile="1" resource="0" file="Source/core/widgets/ui/WLabel.cpp"/>
+            <FILE id="TeQ9gM" name="WLabel.h" compile="0" resource="0" file="Source/core/widgets/ui/WLabel.h"/>
+            <FILE id="NuOzTh" name="WLookAndFeel.cpp" compile="1" resource="0"
+                  file="Source/core/widgets/ui/WLookAndFeel.cpp"/>
+            <FILE id="APreUY" name="WLookAndFeel.h" compile="0" resource="0" file="Source/core/widgets/ui/WLookAndFeel.h"/>
+          </GROUP>
+        </GROUP>
+        <FILE id="mg36z3" name="WChartingView.cpp" compile="1" resource="0"
+              file="Source/core/WChartingView.cpp"/>
+        <FILE id="SICyna" name="WChartingView.h" compile="0" resource="0" file="Source/core/WChartingView.h"/>
+      </GROUP>
+      <FILE id="vWY0IH" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="GuQp4K" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="DI2oH2" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <EXPORTFORMATS>
+    <VS2022 targetFolder="Builds/VisualStudio2022">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="ChartingView"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="ChartingView"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_cryptography" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_data_structures" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_events" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_graphics" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="C:/JUCE/juce-6/modules"/>
+        <MODULEPATH id="juce_opengl" path="C:/JUCE/juce-6/modules"/>
+      </MODULEPATHS>
+    </VS2022>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+</JUCERPROJECT>
