@@ -8,6 +8,9 @@
     <Filter Include="ChartingView\Source\core\widgets\layout">
       <UniqueIdentifier>{7C43DECD-5B3E-2210-4114-975F3A50A3E6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ChartingView\Source\core\widgets\ui\chart">
+      <UniqueIdentifier>{A9C41AC2-7B61-ECAD-EBE6-55C6CB18E19D}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ChartingView\Source\core\widgets\ui">
       <UniqueIdentifier>{BA8D34F2-35BF-7916-067F-9EE172BF304C}</UniqueIdentifier>
     </Filter>
@@ -291,6 +294,18 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\core\widgets\layout\WLayout.cpp">
       <Filter>ChartingView\Source\core\widgets\layout</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChart.cpp">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartAxis.cpp">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.cpp">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartViewport.cpp">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\core\widgets\ui\BaseComponent.cpp">
       <Filter>ChartingView\Source\core\widgets\ui</Filter>
@@ -1757,6 +1772,18 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\core\widgets\layout\WLayout.h">
       <Filter>ChartingView\Source\core\widgets\layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChart.h">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartAxis.h">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.h">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartViewport.h">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\core\widgets\ui\BaseComponent.h">
       <Filter>ChartingView\Source\core\widgets\ui</Filter>

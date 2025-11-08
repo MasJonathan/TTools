@@ -16,6 +16,9 @@ class WLookAndFeel : public LookAndFeel_V4 {
 public:
 
 	inline static Colour bgColour = Colours::black.brighter(0.1f);
+	inline static Colour bgWidgetColour = Colours::black.brighter(0.15f);
+
+	inline static float widgetCorner = 6;
 
 	WLookAndFeel() {
 		setColour(juce::ResizableWindow::backgroundColourId, bgColour);

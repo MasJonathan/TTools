@@ -30,7 +30,7 @@ private:
 
 BaseComponent::BaseComponent()
 	: _asyncResizer(this)
-	, _parentLayout(new WFlexLayout(WFlexLayout::Options::horizontal_group())) //WBaseComponentLayout
+	// , _parentLayout(new WFlexLayout(WFlexLayout::Options::horizontal_group())) //WBaseComponentLayout
 	, _preferredSizeListener([&]() { triggerAsyncResize(); })
 	{
 
@@ -67,7 +67,23 @@ const WParentLayout* BaseComponent::getParentLayout() const { return _parentLayo
 
 void BaseComponent::setParentLayout(WParentLayout* layout) { return _parentLayout.reset(layout); }
 
-void BaseComponent::applyLayout() { if (_parentLayout) _parentLayout->applyLayout(getLocalBounds(), getChildren()); }
+BorderSize<int> BaseComponent::getBorders() const { return _borders; }
+
+void BaseComponent::setBorders(const BorderSize<int>& b) { _borders = b; }
+
+void BaseComponent::setBorders(int size) {
+	_borders = BorderSize<int>(size);
+}
+
+void BaseComponent::applyLayout() {
+	const auto bParent = _borders.subtractedFrom(getLocalBounds());
+	if (_parentLayout) 
+		_parentLayout->applyLayout(bParent, getChildren());
+	else {
+		WParentLayout l;
+		l.applyLayout(bParent, getChildren());
+	}
+}
 
 void BaseComponent::triggerAsyncResize() {
 	_asyncResizer.triggerAsyncResize();

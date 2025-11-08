@@ -148,6 +148,10 @@
     <ClCompile Include="..\..\Source\core\utils\TimerLambda.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\layout\WFlexLayout.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\layout\WLayout.cpp"/>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChart.cpp"/>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartAxis.cpp"/>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.cpp"/>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartViewport.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\BaseComponent.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\PanelComponent.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\WButton.cpp"/>
@@ -1470,6 +1474,10 @@
     <ClInclude Include="..\..\Source\core\utils\TimerLambda.h"/>
     <ClInclude Include="..\..\Source\core\widgets\layout\WFlexLayout.h"/>
     <ClInclude Include="..\..\Source\core\widgets\layout\WLayout.h"/>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChart.h"/>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartAxis.h"/>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.h"/>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartViewport.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\BaseComponent.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\PanelComponent.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\WButton.h"/>

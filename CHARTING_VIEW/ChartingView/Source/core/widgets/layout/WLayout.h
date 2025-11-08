@@ -107,6 +107,17 @@ public:
 	WLayout& setAnchorBottom(float v) { _anchors.setBottom(v); return *this; }
 	float getAnchorBottom() const { return _anchors.getBottom(); }
 
+	// void layout_stretch_all(float left, int right, int top, int bot) {
+		// setAnchors({ 0, 0, 1, 1 });
+		// setBorders({ top, left, bot, right });
+		// setOffset({ 0, 0, 0, 0 });
+	// }
+	// void layout_stretch_top(int left, int right, int y, int h) {
+		// setAnchors({ 0, 0, 1, 0 });
+		// setBorders({ 0, left, 0, right });
+		// setOffset({ 0, y, 0, h });
+	// }
+
 private:
 	Point<float> _pivot;
 	Rectangle<float> _offset;
@@ -246,7 +257,7 @@ private:
 
 class WParentLayout {
 public:
-	virtual void applyLayout(const Rectangle<int>& bParent, const Array<Component*>& children) = 0;
+	virtual void applyLayout(const Rectangle<int>& bParent, const Array<Component*>& children);
 
 	std::vector<BaseComponent*> getValidChildren(const Array<Component*>& children);
 };

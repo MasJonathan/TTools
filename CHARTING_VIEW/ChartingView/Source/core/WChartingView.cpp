@@ -12,14 +12,18 @@
 #include "widgets/ui/WLookAndFeel.h"
 #include "widgets/ui/WColorSurface.h"
 
-WChartingView::WChartingView() : _lnf(_initLnf()), _label("Toto") {
-	auto* c1 = new WColorSurface(Colours::red.withSaturation(0.8f));
-	auto* c2 = new WColorSurface(Colours::green.withSaturation(0.8f));
-	auto* c3 = new WColorSurface(Colours::blue.withSaturation(0.8f));
-	addAndMakeVisible(_label);
-	ownAndMakeVisible(c1);
-	ownAndMakeVisible(c2);
-	ownAndMakeVisible(c3);
+WChartingView::WChartingView()
+: _lnf(_initLnf()), _label("Toto") {
+	// auto* c1 = new WColorSurface(Colours::red.withSaturation(0.8f));
+	// auto* c2 = new WColorSurface(Colours::green.withSaturation(0.8f));
+	// auto* c3 = new WColorSurface(Colours::blue.withSaturation(0.8f));
+	// addAndMakeVisible(_label);
+	// ownAndMakeVisible(c1);
+	// ownAndMakeVisible(c2);
+	// ownAndMakeVisible(c3);
+	addAndMakeVisible(_chart);
+	setBorders(20);
+	_chart.getPreferredSize().setFlexibleSize(10000, 10000);
 }
 
 WChartingView::~WChartingView() {
@@ -28,6 +32,11 @@ WChartingView::~WChartingView() {
 
 void WChartingView::paint(Graphics& g) {
 	g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+}
+
+void WChartingView::resized() {
+	// BaseComponent::resized();
+	_chart.setBounds(getBorders().subtractedFrom(getLocalBounds()));
 }
 
 WLookAndFeel* WChartingView::_initLnf() {

@@ -21,7 +21,6 @@ void WFlexLayout::applyLayout(const Rectangle<int>& bParent, const Array<Compone
 	int totalPreferredMain = 0;
 	int totalFlexible = 0;
 
-	// 1. Collecte des enfants valides
 	for (auto* c : children) {
 		if (auto* bc = dynamic_cast<BaseComponent*>(c)) {
 			if (!bc->getPreferredSize().getIgnoreLayout()) {
@@ -40,13 +39,12 @@ void WFlexLayout::applyLayout(const Rectangle<int>& bParent, const Array<Compone
 
 	if (validChildren.empty()) return;
 
-	// 2. Dimensions du conteneur parent
 	int mainSize = (options.direction == Direction::Row) ? bParent.getWidth() : bParent.getHeight();
 	int crossSize = (options.direction == Direction::Row) ? bParent.getHeight() : bParent.getWidth();
 	int remaining = mainSize - totalPreferredMain - ((int)validChildren.size() - 1) * options.spacing;
 	int mainPos = (options.direction == Direction::Row) ? bParent.getX() : bParent.getY();
+	int crossPos = (options.direction == Direction::Row) ? bParent.getY() : bParent.getX();
 
-	// 3. Gestion de justify-content
 	int space = 0;
 	bool stretchItems = false;
 
@@ -72,62 +70,89 @@ void WFlexLayout::applyLayout(const Rectangle<int>& bParent, const Array<Compone
 		stretchItems = true;
 		break;
 	default:
-		break; // FlexStart
+		break;
 	}
 
-	// Si JustifyContent::Stretch, chaque enfant s’étire pour occuper tout l’espace disponible
 	int stretchSize = 0;
 	if (stretchItems && validChildren.size() > 0) {
 		stretchSize = (mainSize - ((int)validChildren.size() - 1) * options.spacing) / (int)validChildren.size();
 	}
 
-	// 4. Positionnement
+	int currentLineCrossSize = 0;
+	std::vector<BaseComponent*> lineChildren;
+	auto flushLine = [&](int startMainPos) {
+		int localMainPos = startMainPos;
+		for (auto* bc : lineChildren) {
+			auto& pref = bc->getPreferredSize();
+
+			int prefMain = (options.direction == Direction::Row)
+				? pref.getPreferredWidth()
+				: pref.getPreferredHeight();
+			int flex = (options.direction == Direction::Row)
+				? pref.getFlexibleWidth()
+				: pref.getFlexibleHeight();
+			int minMain = (options.direction == Direction::Row)
+				? pref.getMinWidth()
+				: pref.getMinHeight();
+			int prefCross = (options.direction == Direction::Row)
+				? pref.getPreferredHeight()
+				: pref.getPreferredWidth();
+
+			float flexFactor = (totalFlexible > 0 && flex > 0)
+				? static_cast<float>(flex) / totalFlexible
+				: 0.0f;
+
+			int extraMain = stretchItems ? 0 : static_cast<int>(std::round(flexFactor * remaining));
+
+			int sizeMain = stretchItems
+				? jmax(minMain, stretchSize)
+				: jmax(minMain, prefMain + extraMain);
+
+			int posCross = 0;
+			int sizeCross = prefCross;
+			switch (options.align) {
+			case AlignItems::Stretch: sizeCross = currentLineCrossSize; break;
+			case AlignItems::Center: posCross = (currentLineCrossSize - sizeCross) / 2; break;
+			case AlignItems::FlexEnd: posCross = currentLineCrossSize - sizeCross; break;
+			default: break;
+			}
+
+			Rectangle<int> childBounds;
+			if (options.direction == Direction::Row) {
+				childBounds = Rectangle<int>(localMainPos, crossPos + posCross, sizeMain, sizeCross);
+				localMainPos += sizeMain + options.spacing;
+			}
+			else {
+				childBounds = Rectangle<int>(crossPos + posCross, localMainPos, sizeCross, sizeMain);
+				localMainPos += sizeMain + options.spacing;
+			}
+			bc->setBounds(childBounds);
+		}
+		lineChildren.clear();
+	};
+
+	int usedMain = 0;
 	for (auto* bc : validChildren) {
 		auto& pref = bc->getPreferredSize();
-
-		int prefMain = (options.direction == Direction::Row)
+		int childMainSize = (options.direction == Direction::Row)
 			? pref.getPreferredWidth()
 			: pref.getPreferredHeight();
-		int flex = (options.direction == Direction::Row)
-			? pref.getFlexibleWidth()
-			: pref.getFlexibleHeight();
-		int minMain = (options.direction == Direction::Row)
-			? pref.getMinWidth()
-			: pref.getMinHeight();
-		int prefCross = (options.direction == Direction::Row)
+		if (options.wrap == FlexWrap::Wrap && usedMain + childMainSize > mainSize && !lineChildren.empty()) {
+			flushLine(mainPos);
+			if (options.direction == Direction::Row)
+				crossPos += currentLineCrossSize + options.spacing;
+			else
+				crossPos += currentLineCrossSize + options.spacing;
+			mainPos = (options.direction == Direction::Row) ? bParent.getX() : bParent.getY();
+			usedMain = 0;
+			currentLineCrossSize = 0;
+		}
+		lineChildren.push_back(bc);
+		int childCrossSize = (options.direction == Direction::Row)
 			? pref.getPreferredHeight()
 			: pref.getPreferredWidth();
-
-		float flexFactor = (totalFlexible > 0 && flex > 0)
-			? static_cast<float>(flex) / totalFlexible
-			: 0.0f;
-
-		int extraMain = stretchItems ? 0 : static_cast<int>(std::round(flexFactor * remaining));
-
-		int sizeMain = stretchItems
-			? jmax(minMain, stretchSize)
-			: jmax(minMain, prefMain + extraMain);
-
-		// Alignement secondaire
-		int posCross = 0;
-		int sizeCross = prefCross;
-		switch (options.align) {
-		case AlignItems::Stretch: sizeCross = crossSize; break;
-		case AlignItems::Center: posCross = (crossSize - sizeCross) / 2; break;
-		case AlignItems::FlexEnd: posCross = crossSize - sizeCross; break;
-		default: break; // FlexStart
-		}
-
-		Rectangle<int> childBounds;
-		if (options.direction == Direction::Row) {
-			childBounds = Rectangle<int>(mainPos, bParent.getY() + posCross, sizeMain, sizeCross);
-			mainPos += sizeMain + options.spacing;
-		}
-		else {
-			childBounds = Rectangle<int>(bParent.getX() + posCross, mainPos, sizeCross, sizeMain);
-			mainPos += sizeMain + options.spacing;
-		}
-
-		bc->setBounds(childBounds);
+		currentLineCrossSize = jmax(currentLineCrossSize, childCrossSize);
+		usedMain += childMainSize + options.spacing;
 	}
+	if (!lineChildren.empty()) flushLine(mainPos);
 }

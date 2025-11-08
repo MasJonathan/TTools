@@ -31,6 +31,9 @@ public:
 	WParentLayout* getParentLayout();
 	const WParentLayout* getParentLayout() const;
 	void setParentLayout(WParentLayout* layout);
+	BorderSize<int> getBorders() const;
+	void setBorders(const BorderSize<int>& b);
+	void setBorders(int size);
 	void applyLayout();
 
 	void triggerAsyncResize();
@@ -45,6 +48,7 @@ private:
 	WLayout _wlayout;
 	WPreferredSize _wPreferredSize;
 	std::unique_ptr<WParentLayout> _parentLayout;
+	BorderSize<int> _borders;
 	AsyncResizer _asyncResizer;
 	WPreferredSize::ListenerLambda _preferredSizeListener;
 	std::vector<UPtr<Component>> _ownedChildren;

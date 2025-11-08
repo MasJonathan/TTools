@@ -15,7 +15,7 @@
 class WFlexLayout : public WParentLayout {
 public:
 	enum class Direction { Row, Column };
-	enum class JustifyContent { // main axis
+	enum class JustifyContent { // mainAxis
 		FlexStart,
 		FlexEnd,
 		Center,
@@ -24,18 +24,23 @@ public:
 		SpaceEvenly,
 		Stretch
 	};
-	enum class AlignItems { // cross axis
+	enum class AlignItems { // crossAxis
 		Stretch,
 		FlexStart,
 		FlexEnd,
 		Center
+	};
+	enum class FlexWrap {
+		NoWrap,
+		Wrap
 	};
 
 	struct Options {
 		Direction direction = Direction::Row;
 		JustifyContent justify = JustifyContent::FlexStart;
 		AlignItems align = AlignItems::Stretch;
-		int spacing = 0; // espace entre les enfants
+		FlexWrap wrap = FlexWrap::NoWrap;
+		int spacing = 0;
 
 		static Options horizontal_group() {
 			Options o;
@@ -80,4 +85,3 @@ public:
 private:
 	Options options;
 };
-

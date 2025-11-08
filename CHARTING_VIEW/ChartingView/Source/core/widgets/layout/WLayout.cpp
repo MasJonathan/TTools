@@ -11,6 +11,14 @@
 #include "WLayout.h"
 #include "../ui/BaseComponent.h"
 
+void WParentLayout::applyLayout(const Rectangle<int>& bParent, const Array<Component*>& children) {
+	const auto cs = getValidChildren(children);
+	for (auto* c : cs) {
+		const auto b = c->getLayout().LayoutBounds(bParent);
+		c->setBounds(b);
+	}
+}
+
 std::vector<BaseComponent*> WParentLayout::getValidChildren(const Array<Component*>& children) {
 	std::vector<BaseComponent*> validChildren;
 

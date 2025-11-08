@@ -32,6 +32,20 @@
             <FILE id="qD8OjS" name="WLayout.h" compile="0" resource="0" file="Source/core/widgets/layout/WLayout.h"/>
           </GROUP>
           <GROUP id="{5009B02B-F947-3054-1C20-373016F148DD}" name="ui">
+            <GROUP id="{EDA63A42-93B5-A7F1-FE83-B6E59A30245D}" name="chart">
+              <FILE id="PV8zSy" name="WChart.cpp" compile="1" resource="0" file="Source/core/widgets/ui/chart/WChart.cpp"/>
+              <FILE id="kTOjQV" name="WChart.h" compile="0" resource="0" file="Source/core/widgets/ui/chart/WChart.h"/>
+              <FILE id="nOluEe" name="WChartAxis.cpp" compile="1" resource="0" file="Source/core/widgets/ui/chart/WChartAxis.cpp"/>
+              <FILE id="S9CZNT" name="WChartAxis.h" compile="0" resource="0" file="Source/core/widgets/ui/chart/WChartAxis.h"/>
+              <FILE id="G6ycP3" name="WChartScaleData.cpp" compile="1" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartScaleData.cpp"/>
+              <FILE id="SJRJDl" name="WChartScaleData.h" compile="0" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartScaleData.h"/>
+              <FILE id="nSX14J" name="WChartViewport.cpp" compile="1" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartViewport.cpp"/>
+              <FILE id="ruaqpN" name="WChartViewport.h" compile="0" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartViewport.h"/>
+            </GROUP>
             <FILE id="koLqbr" name="BaseComponent.cpp" compile="1" resource="0"
                   file="Source/core/widgets/ui/BaseComponent.cpp"/>
             <FILE id="Kph5Pq" name="BaseComponent.h" compile="0" resource="0" file="Source/core/widgets/ui/BaseComponent.h"/>
