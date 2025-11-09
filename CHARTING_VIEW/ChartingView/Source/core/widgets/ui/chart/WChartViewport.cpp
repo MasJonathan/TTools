@@ -9,3 +9,15 @@
 */
 
 #include "WChartViewport.h"
+#include "WChartTransform.h"
+
+
+WChartViewport::WChartViewport(WChartScaleTransform& scaleT) : _scaleT(scaleT) {
+	
+}
+
+void WChartViewport::paint(Graphics& g) {
+	// g.fillAll(Colours::blue);
+}
+
+

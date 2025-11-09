@@ -41,6 +41,10 @@
                     file="Source/core/widgets/ui/chart/WChartScaleData.cpp"/>
               <FILE id="SJRJDl" name="WChartScaleData.h" compile="0" resource="0"
                     file="Source/core/widgets/ui/chart/WChartScaleData.h"/>
+              <FILE id="YvmPwa" name="WChartTransform.cpp" compile="1" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartTransform.cpp"/>
+              <FILE id="DTV32e" name="WChartTransform.h" compile="0" resource="0"
+                    file="Source/core/widgets/ui/chart/WChartTransform.h"/>
               <FILE id="nSX14J" name="WChartViewport.cpp" compile="1" resource="0"
                     file="Source/core/widgets/ui/chart/WChartViewport.cpp"/>
               <FILE id="ruaqpN" name="WChartViewport.h" compile="0" resource="0"

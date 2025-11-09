@@ -10,7 +10,7 @@
 
 #pragma once
 #include "../BaseComponent.h"
-#include "WChartScaleData.h"
+#include "WChartTransform.h"
 
 class WChartAxis;
 class WChartViewport;
@@ -24,7 +24,8 @@ public:
 	void resized() override;
 
 private:
-	WChartScaleData _scaleData;
+
+	WChartScaleTransform _scaleT;
 	UPtr<WChartAxis> _xAxis;
 	UPtr<WChartAxis> _yAxis;
 	UPtr<WChartViewport> _viewport;

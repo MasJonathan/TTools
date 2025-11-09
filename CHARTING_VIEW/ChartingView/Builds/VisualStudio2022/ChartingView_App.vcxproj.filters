@@ -304,6 +304,9 @@
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.cpp">
       <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartTransform.cpp">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartViewport.cpp">
       <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClCompile>
@@ -1780,6 +1783,9 @@
       <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.h">
+      <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartTransform.h">
       <Filter>ChartingView\Source\core\widgets\ui\chart</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartViewport.h">

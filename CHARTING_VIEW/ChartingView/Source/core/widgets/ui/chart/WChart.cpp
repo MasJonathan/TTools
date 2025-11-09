@@ -15,13 +15,20 @@
 #include "WChartViewport.h"
 
 WChart::WChart()
-	: _xAxis(new WChartAxis())
-	, _yAxis(new WChartAxis())
-	, _viewport(new WChartViewport())
+	: _xAxis(new WChartAxis(_scaleT))
+	, _yAxis(new WChartAxis(_scaleT))
+	, _viewport(new WChartViewport(_scaleT))
 {
 	addAndMakeVisible(&*_xAxis);
 	addAndMakeVisible(&*_yAxis);
 	addAndMakeVisible(&*_viewport);
+
+	_scaleT.xUnit
+		.setWorldStart(0)
+		.setWorldEnd(100);
+	_scaleT.yUnit
+		.setWorldStart(6.33)
+		.setWorldEnd(6.85);
 
 	// auto options = WFlexLayout::Options::vertical_group();
 	// options.spacing = 20;
@@ -43,6 +50,17 @@ void WChart::paint(Graphics& g) {
 }
 
 void WChart::resized() {
+	_scaleT.xWorld
+		.setWorldStart(0)
+		.setWorldEnd(getWidth())
+		.setViewportStart(0)
+		.setViewportEnd(getWidth());
+	_scaleT.yWorld
+		.setWorldStart(0)
+		.setWorldEnd(getHeight())
+		.setViewportStart(0)
+		.setViewportEnd(getHeight());
+
 	// BaseComponent::resized();
 	auto bounds = getLocalBounds();
 	auto bRight = bounds.removeFromRight(100);
@@ -54,3 +72,5 @@ void WChart::resized() {
 	_xAxis->setBounds(bBot);
 	_yAxis->setBounds(bRight);
 }
+
+

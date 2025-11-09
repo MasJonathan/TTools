@@ -151,6 +151,7 @@
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChart.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartAxis.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.cpp"/>
+    <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartTransform.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\chart\WChartViewport.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\BaseComponent.cpp"/>
     <ClCompile Include="..\..\Source\core\widgets\ui\PanelComponent.cpp"/>
@@ -1477,6 +1478,7 @@
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChart.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartAxis.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartScaleData.h"/>
+    <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartTransform.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\chart\WChartViewport.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\BaseComponent.h"/>
     <ClInclude Include="..\..\Source\core\widgets\ui\PanelComponent.h"/>

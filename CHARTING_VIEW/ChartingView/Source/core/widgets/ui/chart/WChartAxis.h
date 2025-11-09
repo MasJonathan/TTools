@@ -11,18 +11,16 @@
 #pragma once
 #include "../BaseComponent.h"
 
+class WChartScaleTransform;
+
 class WChartAxis : public BaseComponent {
 public:
-	WChartAxis(WChartScaleData& scaleData) : _scaleData(scaleData) {
+	WChartAxis(WChartScaleTransform& scaleData);
 
-	}
-
-	void paint(Graphics& g) override {
-		g.fillAll(Colours::green);
-	}
+	void paint(Graphics& g) override;
 
 private:
-	WChartScaleData& _scaleData;
+	WChartScaleTransform& _scaleData;
 };
 
 
