@@ -1,0 +1,18 @@
+===== RAPPORT DE BACKTEST {pd.Timestamp.now()} =====
+
+Wallet : 100.00$ -> 104.95$
+Trades : 17
+WinRate : 70.59%
+
+Avg win  (%) : 1.02
+Avg loss (%) : -1.45
+
+Total fees : 3.4959 USDT
+Total leverage fees : 0.0000 USDT
+
+--- Meilleur Trade ---
+	2025-10-10 21:56:00 Entrée : 113901.7100 short, Sortie : 108672.0460 tp PnL : 4.46 USDT (4.40%)
+--- Pire Trade ---
+	2025-11-05 01:53:00 Entrée : 100327.0000 short, Sortie : 101725.0961 sl PnL : -1.70 USDT (-1.59%)
+
+===== FIN DU RAPPORT =====
