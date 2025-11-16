@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <!-- Indispensable pour le responsive sur mobile -->
+    <!-- Responsive mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur de macros quotidiennes</title>
     <style>
@@ -291,7 +291,7 @@
             gap: 8px;
         }
 
-        /* Canvas responsive : largeur 100% dans son conteneur, avec une limite */
+        /* Canvas responsive : largeur 100%, mais résolution logique 260x260 */
         #macroPie {
             width: 100%;
             max-width: 260px;
@@ -343,7 +343,6 @@
         /* ====== RESPONSIVE ====== */
 
         @media (max-width: 900px) {
-            /* On force une seule colonne */
             .layout {
                 grid-template-columns: 1fr !important;
             }
@@ -597,7 +596,7 @@
 
                     <!-- Camembert + légende -->
                     <div class="chart-wrapper">
-                        <canvas id="macroPie"></canvas>
+                        <canvas id="macroPie" width="260" height="260"></canvas>
                         <div class="legend" id="macro-legend">
                             <div class="legend-row">
                                 <div class="legend-left">
@@ -654,7 +653,6 @@
         return value.toFixed(1) + " %";
     }
 
-    // Mifflin-St Jeor BMR
     function computeBMR(sex, weightKg, heightCm, ageYears) {
         if (sex === "male") {
             return 10 * weightKg + 6.25 * heightCm - 5 * ageYears + 5;
@@ -663,7 +661,6 @@
         }
     }
 
-    // Approximation du facteur d’activité à partir des heures de sport hebdo
     function getActivityFactor(hoursPerWeek) {
         if (hoursPerWeek <= 1) {
             return 1.2;
@@ -678,7 +675,6 @@
         }
     }
 
-    // Ajustement calorique selon l’objectif
     function getGoalMultiplier(goal) {
         switch (goal) {
             case "bulk":
@@ -764,27 +760,19 @@
         }
     }
 
-    // Couleurs pour la légende / camembert
     const pieColors = {
         protein: "#2563eb",
         fat: "#f97316",
         carb: "#10b981"
     };
 
-    // Dessin du camembert (donut)
     function drawMacroPie(canvas, macros, targetCalories) {
         if (!canvas.getContext) return;
         const ctx = canvas.getContext("2d");
 
-        // Adapter la taille du canvas au CSS (responsive)
-        const rect = canvas.getBoundingClientRect();
-        const size = Math.min(rect.width, rect.height || rect.width);
-        canvas.width = size * devicePixelRatio;
-        canvas.height = size * devicePixelRatio;
-
         const width = canvas.width;
         const height = canvas.height;
-        const radius = Math.min(width, height) / 2 - 10 * devicePixelRatio;
+        const radius = Math.min(width, height) / 2 - 10;
         const centerX = width / 2;
         const centerY = height / 2;
 
@@ -817,16 +805,13 @@
             startAngle = endAngle;
         });
 
-        // Cercle central (effet donut)
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius * 0.45, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
 
-        // Texte central
         ctx.fillStyle = "#111827";
-        ctx.font = `${14 * devicePixelRatio}px system-ui`;
-        ctx.font = `bold ${14 * devicePixelRatio}px system-ui`;
+        ctx.font = "bold 14px system-ui";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(
@@ -837,101 +822,103 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // Couleurs de légende
+        // Couleurs de la légende
         document.getElementById("color-protein").style.backgroundColor = pieColors.protein;
         document.getElementById("color-fat").style.backgroundColor = pieColors.fat;
         document.getElementById("color-carb").style.backgroundColor = pieColors.carb;
-    });
 
-    document.getElementById("profile-form").addEventListener("submit", function (e) {
-        e.preventDefault();
+        const form = document.getElementById("profile-form");
 
-        const name = document.getElementById("name").value.trim();
-        const age = Number(document.getElementById("age").value);
-        const sex = document.getElementById("sex").value;
-        const height = Number(document.getElementById("height").value);
-        const weight = Number(document.getElementById("weight").value);
-        const sportHours = Number(document.getElementById("sportHours").value);
-        const goal = document.getElementById("goal").value;
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
 
-        const errorEl = document.getElementById("error");
-        const resultsEl = document.getElementById("results");
-        const placeholderEl = document.getElementById("placeholder-results");
+            const name = document.getElementById("name").value.trim();
+            const age = Number(document.getElementById("age").value);
+            const sex = document.getElementById("sex").value;
+            const height = Number(document.getElementById("height").value);
+            const weight = Number(document.getElementById("weight").value);
+            const sportHours = Number(document.getElementById("sportHours").value);
+            const goal = document.getElementById("goal").value;
 
-        errorEl.classList.add("hidden");
-        errorEl.textContent = "";
-        resultsEl.classList.add("hidden");
-        placeholderEl.classList.remove("hidden");
+            const errorEl = document.getElementById("error");
+            const resultsEl = document.getElementById("results");
+            const placeholderEl = document.getElementById("placeholder-results");
 
-        if (!age || !sex || !height || !weight || isNaN(sportHours) || !goal) {
-            errorEl.textContent = "Veuillez remplir tous les champs obligatoires avec des valeurs valides.";
-            errorEl.classList.remove("hidden");
-            return;
-        }
+            errorEl.classList.add("hidden");
+            errorEl.textContent = "";
+            resultsEl.classList.add("hidden");
+            placeholderEl.classList.remove("hidden");
 
-        if (age < 10 || age > 100 || height < 120 || height > 240 || weight < 30 || weight > 250) {
-            errorEl.textContent = "Vérifiez les valeurs saisies (âge, taille, poids) : elles semblent incohérentes.";
-            errorEl.classList.remove("hidden");
-            return;
-        }
+            if (!age || !sex || !height || !weight || isNaN(sportHours) || !goal) {
+                errorEl.textContent = "Veuillez remplir tous les champs obligatoires avec des valeurs valides.";
+                errorEl.classList.remove("hidden");
+                return;
+            }
 
-        if (sportHours < 0 || sportHours > 40) {
-            errorEl.textContent = "Le nombre d’heures de sport par semaine doit être compris entre 0 et 40.";
-            errorEl.classList.remove("hidden");
-            return;
-        }
+            if (age < 10 || age > 100 || height < 120 || height > 240 || weight < 30 || weight > 250) {
+                errorEl.textContent = "Vérifiez les valeurs saisies (âge, taille, poids) : elles semblent incohérentes.";
+                errorEl.classList.remove("hidden");
+                return;
+            }
 
-        const bmr = computeBMR(sex, weight, height, age);
-        const activityFactor = getActivityFactor(sportHours);
-        const tdee = bmr * activityFactor;
-        const targetCalories = tdee * getGoalMultiplier(goal);
+            if (sportHours < 0 || sportHours > 40) {
+                errorEl.textContent = "Le nombre d’heures de sport par semaine doit être compris entre 0 et 40.";
+                errorEl.classList.remove("hidden");
+                return;
+            }
 
-        const macros = getMacroProfile(goal, weight, targetCalories);
+            const bmr = computeBMR(sex, weight, height, age);
+            const activityFactor = getActivityFactor(sportHours);
+            const tdee = bmr * activityFactor;
+            const targetCalories = tdee * getGoalMultiplier(goal);
 
-        const profileSummary = document.getElementById("profile-summary");
-        const displayName = name || "Profil";
-        const sexLabel = sex === "male" ? "Homme" : "Femme";
+            const macros = getMacroProfile(goal, weight, targetCalories);
 
-        profileSummary.textContent =
-            displayName + " – " +
-            age + " ans, " +
-            height.toFixed(0) + " cm, " +
-            weight.toFixed(1) + " kg, " +
-            sexLabel + ", " +
-            sportHours.toFixed(1) + " h de sport / semaine.";
+            const profileSummary = document.getElementById("profile-summary");
+            const displayName = name || "Profil";
+            const sexLabel = sex === "male" ? "Homme" : "Femme";
 
-        document.getElementById("goal-label").textContent = goalLabel(goal);
+            profileSummary.textContent =
+                displayName + " – " +
+                age + " ans, " +
+                height.toFixed(0) + " cm, " +
+                weight.toFixed(1) + " kg, " +
+                sexLabel + ", " +
+                sportHours.toFixed(1) + " h de sport / semaine.";
 
-        document.getElementById("bmr-value").textContent = formatKcal(bmr);
-        document.getElementById("tdee-value").textContent = formatKcal(tdee);
-        document.getElementById("target-calories").textContent = formatKcal(targetCalories);
-        document.getElementById("activity-factor").textContent = activityFactor.toFixed(2);
+            document.getElementById("goal-label").textContent = goalLabel(goal);
 
-        document.getElementById("protein-g").textContent = formatG(macros.proteinG);
-        document.getElementById("fat-g").textContent = formatG(macros.fatG);
-        document.getElementById("carb-g").textContent = formatG(macros.carbG);
+            document.getElementById("bmr-value").textContent = formatKcal(bmr);
+            document.getElementById("tdee-value").textContent = formatKcal(tdee);
+            document.getElementById("target-calories").textContent = formatKcal(targetCalories);
+            document.getElementById("activity-factor").textContent = activityFactor.toFixed(2);
 
-        document.getElementById("protein-kcal").textContent = formatKcal(macros.proteinKcal);
-        document.getElementById("fat-kcal").textContent = formatKcal(macros.fatKcal);
-        document.getElementById("carb-kcal").textContent = formatKcal(macros.carbKcal);
+            document.getElementById("protein-g").textContent = formatG(macros.proteinG);
+            document.getElementById("fat-g").textContent = formatG(macros.fatG);
+            document.getElementById("carb-g").textContent = formatG(macros.carbG);
 
-        document.getElementById("protein-percent").textContent = formatPercent(macros.proteinPercent);
-        document.getElementById("fat-percent").textContent = formatPercent(macros.fatPercent);
-        document.getElementById("carb-percent").textContent = formatPercent(macros.carbPercent);
+            document.getElementById("protein-kcal").textContent = formatKcal(macros.proteinKcal);
+            document.getElementById("fat-kcal").textContent = formatKcal(macros.fatKcal);
+            document.getElementById("carb-kcal").textContent = formatKcal(macros.carbKcal);
 
-        document.getElementById("legend-protein-kcal").textContent = formatKcal(macros.proteinKcal);
-        document.getElementById("legend-fat-kcal").textContent = formatKcal(macros.fatKcal);
-        document.getElementById("legend-carb-kcal").textContent = formatKcal(macros.carbKcal);
+            document.getElementById("protein-percent").textContent = formatPercent(macros.proteinPercent);
+            document.getElementById("fat-percent").textContent = formatPercent(macros.fatPercent);
+            document.getElementById("carb-percent").textContent = formatPercent(macros.carbPercent);
 
-        document.getElementById("legend-protein-percent").textContent = "(" + formatPercent(macros.proteinPercent) + ")";
-        document.getElementById("legend-fat-percent").textContent = "(" + formatPercent(macros.fatPercent) + ")";
-        document.getElementById("legend-carb-percent").textContent = "(" + formatPercent(macros.carbPercent) + ")";
+            document.getElementById("legend-protein-kcal").textContent = formatKcal(macros.proteinKcal);
+            document.getElementById("legend-fat-kcal").textContent = formatKcal(macros.fatKcal);
+            document.getElementById("legend-carb-kcal").textContent = formatKcal(macros.carbKcal);
 
-        const canvas = document.getElementById("macroPie");
-        drawMacroPie(canvas, macros, targetCalories);
+            document.getElementById("legend-protein-percent").textContent = "(" + formatPercent(macros.proteinPercent) + ")";
+            document.getElementById("legend-fat-percent").textContent = "(" + formatPercent(macros.fatPercent) + ")";
+            document.getElementById("legend-carb-percent").textContent = "(" + formatPercent(macros.carbPercent) + ")";
 
-        resultsEl.classList.remove("hidden");
-        placeholderEl.classList.add("hidden");
+            const canvas = document.getElementById("macroPie");
+            drawMacroPie(canvas, macros, targetCalories);
+
+            resultsEl.classList.remove("hidden");
+            placeholderEl.classList.add("hidden");
+        });
     });
 </script>
 </body>
