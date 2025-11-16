@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <!-- Indispensable pour le responsive sur mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculateur de macros quotidiennes</title>
     <style>
         :root {
@@ -159,6 +161,7 @@
             gap: 6px;
             box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
             transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+            white-space: nowrap;
         }
 
         button span.icon {
@@ -239,6 +242,14 @@
             color: #111827;
         }
 
+        .macro-layout {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 0.9fr);
+            gap: 14px;
+            align-items: center;
+            margin-top: 6px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -273,14 +284,6 @@
             margin-top: 6px;
         }
 
-        .macro-layout {
-            display: grid;
-            grid-template-columns: minmax(220px, 1.1fr) minmax(220px, 0.9fr);
-            gap: 14px;
-            align-items: center;
-            margin-top: 6px;
-        }
-
         .chart-wrapper {
             display: flex;
             flex-direction: column;
@@ -288,9 +291,12 @@
             gap: 8px;
         }
 
+        /* Canvas responsive : largeur 100% dans son conteneur, avec une limite */
         #macroPie {
+            width: 100%;
             max-width: 260px;
-            max-height: 260px;
+            height: auto;
+            aspect-ratio: 1 / 1;
         }
 
         .legend {
@@ -334,23 +340,108 @@
             white-space: nowrap;
         }
 
+        /* ====== RESPONSIVE ====== */
+
         @media (max-width: 900px) {
+            /* On force une seule colonne */
             .layout {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
         }
 
-        @media (max-width: 640px) {
-            .macro-layout {
-                grid-template-columns: 1fr;
+        @media (max-width: 768px) {
+            body {
+                background: #f3f4f6;
             }
 
             .page {
-                margin-top: 20px;
+                margin-top: 16px;
+                padding: 0 10px 24px;
             }
 
             .header-card {
                 border-radius: 14px;
+                padding: 14px 14px;
+                margin-bottom: 14px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 12px;
+            }
+
+            .layout {
+                gap: 14px;
+            }
+
+            .card {
+                padding: 12px 12px 10px;
+                box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+            }
+
+            form {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .key-values {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .macro-layout {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 5px 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                margin-top: 12px;
+                padding: 0 8px 20px;
+            }
+
+            .header-card {
+                padding: 12px 12px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            .card-title {
+                font-size: 14px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+            button {
+                font-size: 11px;
+                padding: 7px 10px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 4px 4px;
             }
         }
     </style>
@@ -506,7 +597,7 @@
 
                     <!-- Camembert + légende -->
                     <div class="chart-wrapper">
-                        <canvas id="macroPie" width="260" height="260"></canvas>
+                        <canvas id="macroPie"></canvas>
                         <div class="legend" id="macro-legend">
                             <div class="legend-row">
                                 <div class="legend-left">
@@ -575,15 +666,15 @@
     // Approximation du facteur d’activité à partir des heures de sport hebdo
     function getActivityFactor(hoursPerWeek) {
         if (hoursPerWeek <= 1) {
-            return 1.2;    // sédentaire
+            return 1.2;
         } else if (hoursPerWeek <= 3) {
-            return 1.375;  // léger
+            return 1.375;
         } else if (hoursPerWeek <= 5) {
-            return 1.55;   // modéré
+            return 1.55;
         } else if (hoursPerWeek <= 7) {
-            return 1.725;  // très actif
+            return 1.725;
         } else {
-            return 1.9;    // exceptionnellement actif
+            return 1.9;
         }
     }
 
@@ -591,18 +682,17 @@
     function getGoalMultiplier(goal) {
         switch (goal) {
             case "bulk":
-                return 1.15; // +15 % pour prise de masse
+                return 1.15;
             case "cut":
-                return 0.80; // -20 % pour sèche
+                return 0.80;
             case "strength":
-                return 1.05; // léger surplus pour prise de force
+                return 1.05;
             case "maintenance":
             default:
-                return 1.0;  // maintien
+                return 1.0;
         }
     }
 
-    // Profils protéines / lipides et calcul des glucides
     function getMacroProfile(goal, weightKg, targetCalories) {
         let proteinPerKg;
         let fatPerKg;
@@ -674,25 +764,40 @@
         }
     }
 
-    // Dessin du camembert
+    // Couleurs pour la légende / camembert
+    const pieColors = {
+        protein: "#2563eb",
+        fat: "#f97316",
+        carb: "#10b981"
+    };
+
+    // Dessin du camembert (donut)
     function drawMacroPie(canvas, macros, targetCalories) {
         if (!canvas.getContext) return;
         const ctx = canvas.getContext("2d");
+
+        // Adapter la taille du canvas au CSS (responsive)
+        const rect = canvas.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height || rect.width);
+        canvas.width = size * devicePixelRatio;
+        canvas.height = size * devicePixelRatio;
+
         const width = canvas.width;
         const height = canvas.height;
-        const radius = Math.min(width, height) / 2 - 10;
+        const radius = Math.min(width, height) / 2 - 10 * devicePixelRatio;
         const centerX = width / 2;
         const centerY = height / 2;
 
         ctx.clearRect(0, 0, width, height);
 
-        const totalForPie = targetCalories > 0 ? targetCalories :
-            (macros.proteinKcal + macros.fatKcal + macros.carbKcal || 1);
+        const totalForPie = targetCalories > 0
+            ? targetCalories
+            : (macros.proteinKcal + macros.fatKcal + macros.carbKcal || 1);
 
         const segments = [
-            { label: "Protéines", kcal: macros.proteinKcal, color: "#2563eb" },
-            { label: "Lipides",   kcal: macros.fatKcal,    color: "#f97316" },
-            { label: "Glucides",  kcal: macros.carbKcal,   color: "#10b981" }
+            { label: "Protéines", kcal: macros.proteinKcal, color: pieColors.protein },
+            { label: "Lipides",   kcal: macros.fatKcal,    color: pieColors.fat },
+            { label: "Glucides",  kcal: macros.carbKcal,   color: pieColors.carb }
         ];
 
         let startAngle = -Math.PI / 2;
@@ -712,28 +817,27 @@
             startAngle = endAngle;
         });
 
-        // Cercle central pour effet "donut"
+        // Cercle central (effet donut)
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius * 0.45, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
 
-        // Texte au centre (kcal totales)
+        // Texte central
         ctx.fillStyle = "#111827";
-        ctx.font = "bold 16px system-ui";
+        ctx.font = `${14 * devicePixelRatio}px system-ui`;
+        ctx.font = `bold ${14 * devicePixelRatio}px system-ui`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(Math.round(targetCalories || totalForPie) + " kcal", centerX, centerY);
+        ctx.fillText(
+            Math.round(targetCalories || totalForPie) + " kcal",
+            centerX,
+            centerY
+        );
     }
 
-    const pieColors = {
-        protein: "#2563eb",
-        fat: "#f97316",
-        carb: "#10b981"
-    };
-
-    // Initialisation des couleurs de légende
     document.addEventListener("DOMContentLoaded", () => {
+        // Couleurs de légende
         document.getElementById("color-protein").style.backgroundColor = pieColors.protein;
         document.getElementById("color-fat").style.backgroundColor = pieColors.fat;
         document.getElementById("color-carb").style.backgroundColor = pieColors.carb;
@@ -759,7 +863,6 @@
         resultsEl.classList.add("hidden");
         placeholderEl.classList.remove("hidden");
 
-        // Validation simple
         if (!age || !sex || !height || !weight || isNaN(sportHours) || !goal) {
             errorEl.textContent = "Veuillez remplir tous les champs obligatoires avec des valeurs valides.";
             errorEl.classList.remove("hidden");
@@ -778,7 +881,6 @@
             return;
         }
 
-        // Calculs principaux
         const bmr = computeBMR(sex, weight, height, age);
         const activityFactor = getActivityFactor(sportHours);
         const tdee = bmr * activityFactor;
@@ -786,7 +888,6 @@
 
         const macros = getMacroProfile(goal, weight, targetCalories);
 
-        // Mise à jour du résumé
         const profileSummary = document.getElementById("profile-summary");
         const displayName = name || "Profil";
         const sexLabel = sex === "male" ? "Homme" : "Femme";
@@ -801,13 +902,11 @@
 
         document.getElementById("goal-label").textContent = goalLabel(goal);
 
-        // Valeurs énergétiques
         document.getElementById("bmr-value").textContent = formatKcal(bmr);
         document.getElementById("tdee-value").textContent = formatKcal(tdee);
         document.getElementById("target-calories").textContent = formatKcal(targetCalories);
         document.getElementById("activity-factor").textContent = activityFactor.toFixed(2);
 
-        // Macros (tableau)
         document.getElementById("protein-g").textContent = formatG(macros.proteinG);
         document.getElementById("fat-g").textContent = formatG(macros.fatG);
         document.getElementById("carb-g").textContent = formatG(macros.carbG);
@@ -820,7 +919,6 @@
         document.getElementById("fat-percent").textContent = formatPercent(macros.fatPercent);
         document.getElementById("carb-percent").textContent = formatPercent(macros.carbPercent);
 
-        // Légende camembert
         document.getElementById("legend-protein-kcal").textContent = formatKcal(macros.proteinKcal);
         document.getElementById("legend-fat-kcal").textContent = formatKcal(macros.fatKcal);
         document.getElementById("legend-carb-kcal").textContent = formatKcal(macros.carbKcal);
@@ -829,11 +927,9 @@
         document.getElementById("legend-fat-percent").textContent = "(" + formatPercent(macros.fatPercent) + ")";
         document.getElementById("legend-carb-percent").textContent = "(" + formatPercent(macros.carbPercent) + ")";
 
-        // Dessin du graphique
         const canvas = document.getElementById("macroPie");
         drawMacroPie(canvas, macros, targetCalories);
 
-        // Affichage
         resultsEl.classList.remove("hidden");
         placeholderEl.classList.add("hidden");
     });
