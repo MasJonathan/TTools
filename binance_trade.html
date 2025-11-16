@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculateur de gains Binance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #0b1120;
+            --bg-card: #020617;
+            --bg-card-alt: #020817;
+            --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.1);
+            --text: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border: #1f2937;
+            --danger: #f97373;
+            --success: #4ade80;
+            --warning: #facc15;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2937, #020617 55%);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        header {
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.7rem;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            background: var(--accent-soft);
+            color: var(--accent);
+            margin-left: 0.5rem;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            background: linear-gradient(145deg, var(--bg-card), #020617);
+            border-radius: 0.9rem;
+            border: 1px solid var(--border);
+            padding: 0.9rem 1rem;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.4rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.6rem 0.8rem;
+            margin-top: 0.4rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .field label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="datetime-local"],
+        select {
+            width: 100%;
+            padding: 0.35rem 0.5rem;
+            border-radius: 0.45rem;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--text);
+            font-size: 0.8rem;
+        }
+
+        input::placeholder {
+            color: #4b5563;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.45);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .small-note {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            background: radial-gradient(circle at top, rgba(56,189,248,0.2), rgba(15,23,42,1));
+            color: var(--accent);
+            padding: 0.3rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-secondary {
+            border-color: var(--border);
+            color: var(--text-muted);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .status-pill {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .status-connected {
+            background: rgba(22, 163, 74, 0.15);
+            color: var(--success);
+        }
+
+        .status-connected .status-dot {
+            background: var(--success);
+        }
+
+        .status-disconnected {
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--danger);
+        }
+
+        .status-disconnected .status-dot {
+            background: var(--danger);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.8rem;
+        }
+
+        .result-card {
+            background: radial-gradient(circle at top left, #111827, #020617);
+            border-radius: 0.9rem;
+            border: 1px solid var(--border);
+            padding: 0.7rem 0.8rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.2rem;
+        }
+
+        .result-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .result-tag {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+        }
+
+        .tag-tp {
+            background: rgba(74, 222, 128, 0.12);
+            color: var(--success);
+        }
+
+        .tag-sl {
+            background: rgba(248, 113, 113, 0.12);
+            color: var(--danger);
+        }
+
+        .tag-current {
+            background: rgba(250, 204, 21, 0.12);
+            color: var(--warning);
+        }
+
+        .result-main {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0.2rem 0;
+        }
+
+        .result-percent {
+            font-size: 0.85rem;
+        }
+
+        .result-percent.positive {
+            color: var(--success);
+        }
+
+        .result-percent.negative {
+            color: var(--danger);
+        }
+
+        .result-body {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+        }
+
+        .result-body div {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        footer {
+            margin-top: 1.3rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.6rem;
+            border-top: 1px solid rgba(31, 41, 55, 0.8);
+            padding-top: 0.6rem;
+        }
+
+        .footer-left,
+        .footer-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        @media (max-width: 960px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>
+            Calculateur de PnL Binance
+            <span class="badge">Temps réel WebSocket</span>
+        </h1>
+        <div class="subtitle">
+            Simulation de gains / pertes avec frais, levier et mises à jour de prix en direct.
+        </div>
+    </header>
+
+    <div class="layout-grid">
+        <!-- Paramètres généraux -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Paramètres généraux</div>
+                    <div class="card-subtitle">Wallet, frais, levier, temps d’exposition</div>
+                </div>
+                <button id="resetBtn" class="btn btn-secondary" type="button">
+                    Réinitialiser
+                </button>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="wallet">Montant du wallet</label>
+                    <input id="wallet" type="number" step="0.01" min="0" placeholder="100"
+                           value="100">
+                    <span class="small-note">Contrepartie (ex : USDT / USDC)</span>
+                </div>
+
+                <div class="field">
+                    <label for="feeRate">Frais de transaction (%)</label>
+                    <input id="feeRate" type="number" step="0.001" min="0" placeholder="0.1" value="0.1">
+                    <span class="small-note">Appliqués à l’achat et à la vente</span>
+                </div>
+
+                <div class="field">
+                    <label for="leverage">Effet de levier</label>
+                    <input id="leverage" type="number" step="0.1" min="1" value="1">
+                    <span class="small-note">1 = sans levier, sinon position = wallet × levier</span>
+                </div>
+
+                <div class="field">
+                    <label for="fundingRate">Frais de levier (% / heure)</label>
+                    <input id="fundingRate" type="number" step="0.001" min="0" placeholder="0.01" value="0.01">
+                    <span class="small-note">Sur la somme empruntée (position - wallet)</span>
+                </div>
+
+                <div class="field">
+                    <label for="hoursLeverage">Heures de levier</label>
+                    <input id="hoursLeverage" type="number" step="0.01" min="0" placeholder="0">
+                    <span class="small-note">Si vide, calculées depuis la date-heure d’entrée</span>
+                </div>
+
+                <div class="field">
+                    <label for="entryDatetime">Date-heure d’entrée</label>
+                    <input id="entryDatetime" type="datetime-local">
+                    <span id="computedHours" class="small-note"></span>
+                </div>
+
+                <div class="field">
+                    <label for="direction">Direction du trade</label>
+                    <select id="direction">
+                        <option value="long">Long</option>
+                        <option value="short">Short</option>
+                    </select>
+                    <span class="small-note">Utilise la totalité du wallet dans la simulation</span>
+                </div>
+
+                <div class="field">
+                    <label for="symbol">Symbole Binance</label>
+                    <input id="symbol" type="text" value="INJUSDC">
+                    <span class="small-note mono">Ex : INJUSDC, BTCUSDT (flux @trade)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prix et WebSocket -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Prix & WebSocket</div>
+                    <div class="card-subtitle">Entrée, TP, SL, prix actuel</div>
+                </div>
+                <div class="field-row">
+                    <button id="connectWsBtn" class="btn" type="button">
+                        Reconnecter WebSocket
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="entryPrice">Prix d’entrée</label>
+                    <input id="entryPrice" type="number" step="0.0001" min="0">
+                </div>
+
+                <div class="field">
+                    <label for="tpPrice">Take Profit (TP)</label>
+                    <input id="tpPrice" type="number" step="0.0001" min="0">
+                </div>
+
+                <div class="field">
+                    <label for="slPrice">Stop Loss (SL)</label>
+                    <input id="slPrice" type="number" step="0.0001" min="0">
+                </div>
+
+                <div class="field">
+                    <label for="manualCurrentPrice">Prix actuel (manuel)</label>
+                    <input id="manualCurrentPrice" type="number" step="0.0001" min="0">
+                    <span class="small-note">Utilisé si le prix WebSocket n’est pas disponible</span>
+                </div>
+
+                <div class="field">
+                    <label>Prix WebSocket</label>
+                    <div class="field-row">
+                        <span id="wsPrice" class="mono">–</span>
+                    </div>
+                    <span class="small-note">
+                        Dernière mise à jour : <span id="wsLastUpdate">–</span>
+                    </span>
+                </div>
+
+                <div class="field">
+                    <label>Statut WebSocket</label>
+                    <div id="wsStatus" class="status-pill status-disconnected">
+                        <span class="status-dot"></span>
+                        <span>Déconnecté</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Résultats -->
+    <section class="results-grid">
+        <!-- TP -->
+        <div class="result-card" id="tpCard">
+            <div class="result-header">
+                <div class="result-title">Sortie Take Profit</div>
+                <span class="result-tag tag-tp">TP</span>
+            </div>
+            <div class="result-main">
+                <span id="tpPnlValue">–</span>
+                <span class="result-percent" id="tpPnlPercent">–</span>
+            </div>
+            <div class="result-body">
+                <div><span>Nouveau wallet</span><span id="tpNewWallet" class="mono">–</span></div>
+                <div><span>Prix de sortie</span><span id="tpExitPrice" class="mono">–</span></div>
+                <div><span>Total frais</span><span id="tpFees" class="mono">–</span></div>
+            </div>
+        </div>
+
+        <!-- SL -->
+        <div class="result-card" id="slCard">
+            <div class="result-header">
+                <div class="result-title">Sortie Stop Loss</div>
+                <span class="result-tag tag-sl">SL</span>
+            </div>
+            <div class="result-main">
+                <span id="slPnlValue">–</span>
+                <span class="result-percent" id="slPnlPercent">–</span>
+            </div>
+            <div class="result-body">
+                <div><span>Nouveau wallet</span><span id="slNewWallet" class="mono">–</span></div>
+                <div><span>Prix de sortie</span><span id="slExitPrice" class="mono">–</span></div>
+                <div><span>Total frais</span><span id="slFees" class="mono">–</span></div>
+            </div>
+        </div>
+
+        <!-- Prix actuel -->
+        <div class="result-card" id="currentCard">
+            <div class="result-header">
+                <div class="result-title">Sortie au prix actuel</div>
+                <span class="result-tag tag-current">Actuel</span>
+            </div>
+            <div class="result-main">
+                <span id="currentPnlValue">–</span>
+                <span class="result-percent" id="currentPnlPercent">–</span>
+            </div>
+            <div class="result-body">
+                <div><span>Nouveau wallet</span><span id="currentNewWallet" class="mono">–</span></div>
+                <div><span>Prix de sortie</span><span id="currentExitPrice" class="mono">–</span></div>
+                <div><span>Total frais</span><span id="currentFees" class="mono">–</span></div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-left">
+            <span>
+                La simulation considère que la totalité du wallet est utilisée pour la position
+                (taille de position = wallet × levier).
+            </span>
+            <span>
+                Les frais sont appliqués à l’ouverture et à la fermeture, plus des frais horaires
+                sur la somme empruntée (position - wallet).
+            </span>
+        </div>
+        <div class="footer-right">
+            <span>
+                Données de prix en temps réel via l’API publique WebSocket de Binance
+                <span class="mono">(stream @trade)</span>.
+            </span>
+        </div>
+    </footer>
+</div>
+
+<script>
+(function () {
+    const STORAGE_KEY = "binance_pnl_calculator_v1";
+
+    const els = {
+        wallet: document.getElementById("wallet"),
+        feeRate: document.getElementById("feeRate"),
+        leverage: document.getElementById("leverage"),
+        fundingRate: document.getElementById("fundingRate"),
+        hoursLeverage: document.getElementById("hoursLeverage"),
+        entryDatetime: document.getElementById("entryDatetime"),
+        direction: document.getElementById("direction"),
+        symbol: document.getElementById("symbol"),
+
+        entryPrice: document.getElementById("entryPrice"),
+        tpPrice: document.getElementById("tpPrice"),
+        slPrice: document.getElementById("slPrice"),
+        manualCurrentPrice: document.getElementById("manualCurrentPrice"),
+
+        wsPrice: document.getElementById("wsPrice"),
+        wsLastUpdate: document.getElementById("wsLastUpdate"),
+        wsStatus: document.getElementById("wsStatus"),
+
+        computedHours: document.getElementById("computedHours"),
+        resetBtn: document.getElementById("resetBtn"),
+        connectWsBtn: document.getElementById("connectWsBtn"),
+
+        // Résultats TP
+        tpPnlValue: document.getElementById("tpPnlValue"),
+        tpPnlPercent: document.getElementById("tpPnlPercent"),
+        tpNewWallet: document.getElementById("tpNewWallet"),
+        tpExitPrice: document.getElementById("tpExitPrice"),
+        tpFees: document.getElementById("tpFees"),
+
+        // Résultats SL
+        slPnlValue: document.getElementById("slPnlValue"),
+        slPnlPercent: document.getElementById("slPnlPercent"),
+        slNewWallet: document.getElementById("slNewWallet"),
+        slExitPrice: document.getElementById("slExitPrice"),
+        slFees: document.getElementById("slFees"),
+
+        // Résultats prix actuel
+        currentPnlValue: document.getElementById("currentPnlValue"),
+        currentPnlPercent: document.getElementById("currentPnlPercent"),
+        currentNewWallet: document.getElementById("currentNewWallet"),
+        currentExitPrice: document.getElementById("currentExitPrice"),
+        currentFees: document.getElementById("currentFees")
+    };
+
+    let ws = null;
+    let wsPriceValue = null;
+
+    // ---------- Utilitaires ----------
+    function parseNumber(input, fallback = NaN) {
+        if (!input) return fallback;
+        const v = parseFloat(input);
+        return Number.isFinite(v) ? v : fallback;
+    }
+
+    function formatNumber(value, decimals = 2) {
+        if (!Number.isFinite(value)) return "–";
+        return value.toLocaleString("fr-FR", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
+    }
+
+    function formatPercent(value) {
+        if (!Number.isFinite(value)) return "–";
+        const sign = value > 0 ? "+" : "";
+        return sign + formatNumber(value, 2) + " %";
+    }
+
+    function setWsStatus(connected) {
+        const el = els.wsStatus;
+        el.classList.remove("status-connected", "status-disconnected");
+        if (connected) {
+            el.classList.add("status-connected");
+            el.innerHTML = '<span class="status-dot"></span><span>Connecté</span>';
+        } else {
+            el.classList.add("status-disconnected");
+            el.innerHTML = '<span class="status-dot"></span><span>Déconnecté</span>';
+        }
+    }
+
+    // ---------- Gestion du temps de levier ----------
+    function computeEffectiveHours() {
+        let hours = parseNumber(els.hoursLeverage.value, NaN);
+        const dtValue = els.entryDatetime.value;
+
+        if (!Number.isFinite(hours) || hours <= 0) {
+            if (dtValue) {
+                const entry = new Date(dtValue);
+                const now = new Date();
+                if (!isNaN(entry.getTime())) {
+                    const diffMs = now.getTime() - entry.getTime();
+                    hours = diffMs / (1000 * 60 * 60);
+                    if (hours < 0) hours = 0;
+                    els.computedHours.textContent =
+                        "Heures calculées depuis l’entrée : " + formatNumber(hours, 2);
+                } else {
+                    els.computedHours.textContent = "";
+                }
+            } else {
+                hours = 0;
+                els.computedHours.textContent = "";
+            }
+        } else {
+            els.computedHours.textContent = "";
+        }
+
+        return hours;
+    }
+
+    // ---------- Calcul de PnL ----------
+    function computeScenario(exitPrice) {
+        const wallet = parseNumber(els.wallet.value);
+        const feeRate = parseNumber(els.feeRate.value) / 100; // %
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const fundingRate = parseNumber(els.fundingRate.value) / 100; // % par heure
+        const direction = els.direction.value;
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const hoursLeverage = computeEffectiveHours();
+
+        if (
+            !Number.isFinite(wallet) ||
+            wallet <= 0 ||
+            !Number.isFinite(entryPrice) ||
+            entryPrice <= 0 ||
+            !Number.isFinite(exitPrice) ||
+            exitPrice <= 0
+        ) {
+            return null;
+        }
+
+        const positionNotional = wallet * leverage;          // Taille de position
+        const borrowed = Math.max(positionNotional - wallet, 0); // Somme empruntée
+
+        const feeOpen = positionNotional * feeRate;
+        const feeClose = positionNotional * feeRate;
+        const fundingFees =
+            borrowed > 0 && hoursLeverage > 0
+                ? borrowed * fundingRate * hoursLeverage
+                : 0;
+
+        let grossPnl;
+        if (direction === "long") {
+            grossPnl =
+                ((exitPrice - entryPrice) / entryPrice) * positionNotional;
+        } else {
+            grossPnl =
+                ((entryPrice - exitPrice) / entryPrice) * positionNotional;
+        }
+
+        const totalFees = feeOpen + feeClose + fundingFees;
+        const netPnl = grossPnl - totalFees;
+        const newWallet = wallet + netPnl;
+        const pnlPercent = (netPnl / wallet) * 100;
+
+        return {
+            exitPrice,
+            grossPnl,
+            totalFees,
+            netPnl,
+            newWallet,
+            pnlPercent
+        };
+    }
+
+    function updateResultCard(prefix, result) {
+        const valueEl = els[prefix + "PnlValue"];
+        const percentEl = els[prefix + "PnlPercent"];
+        const walletEl = els[prefix + "NewWallet"];
+        const exitPriceEl = els[prefix + "ExitPrice"];
+        const feesEl = els[prefix + "Fees"];
+
+        if (!result) {
+            valueEl.textContent = "–";
+            percentEl.textContent = "–";
+            walletEl.textContent = "–";
+            exitPriceEl.textContent = "–";
+            feesEl.textContent = "–";
+            percentEl.classList.remove("positive", "negative");
+            return;
+        }
+
+        valueEl.textContent = formatNumber(result.netPnl, 2);
+        walletEl.textContent = formatNumber(result.newWallet, 2);
+        exitPriceEl.textContent = formatNumber(result.exitPrice, 4);
+        feesEl.textContent = formatNumber(result.totalFees, 2);
+
+        percentEl.textContent = formatPercent(result.pnlPercent);
+        percentEl.classList.remove("positive", "negative");
+        if (result.pnlPercent > 0) {
+            percentEl.classList.add("positive");
+        } else if (result.pnlPercent < 0) {
+            percentEl.classList.add("negative");
+        }
+    }
+
+    function recalcAll() {
+        // TP
+        const tpExit = parseNumber(els.tpPrice.value);
+        updateResultCard("tp", Number.isFinite(tpExit) ? computeScenario(tpExit) : null);
+
+        // SL
+        const slExit = parseNumber(els.slPrice.value);
+        updateResultCard("sl", Number.isFinite(slExit) ? computeScenario(slExit) : null);
+
+        // Prix actuel (WebSocket prioritaire, sinon manuel)
+        let currentExit = wsPriceValue;
+        if (!Number.isFinite(currentExit)) {
+            currentExit = parseNumber(els.manualCurrentPrice.value);
+        }
+        updateResultCard(
+            "current",
+            Number.isFinite(currentExit) ? computeScenario(currentExit) : null
+        );
+    }
+
+    // ---------- WebSocket Binance ----------
+    function buildWsUrl() {
+        const symbolRaw = els.symbol.value.trim();
+        if (!symbolRaw) return null;
+        const symbol = symbolRaw.toLowerCase();
+        return "wss://stream.binance.com:9443/ws/" + symbol + "@trade";
+    }
+
+    function connectWebSocket() {
+        if (ws) {
+            ws.onopen = ws.onclose = ws.onerror = ws.onmessage = null;
+            try {
+                ws.close();
+            } catch (e) {
+                // ignore
+            }
+            ws = null;
+        }
+
+        const url = buildWsUrl();
+        if (!url) {
+            setWsStatus(false);
+            return;
+        }
+
+        try {
+            ws = new WebSocket(url);
+        } catch (e) {
+            setWsStatus(false);
+            return;
+        }
+
+        ws.onopen = function () {
+            setWsStatus(true);
+        };
+
+        ws.onclose = function () {
+            setWsStatus(false);
+        };
+
+        ws.onerror = function () {
+            setWsStatus(false);
+        };
+
+        ws.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+                // Sur le flux @trade, le prix est généralement dans data.p
+                const price = parseFloat(data.p || data.c || data.lastPrice);
+                if (Number.isFinite(price)) {
+                    wsPriceValue = price;
+                    els.wsPrice.textContent = formatNumber(price, 4);
+                    const now = new Date();
+                    els.wsLastUpdate.textContent = now.toLocaleString("fr-FR");
+                    recalcAll();
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+    }
+
+    // ---------- LocalStorage ----------
+    function saveState() {
+        const state = {
+            wallet: els.wallet.value,
+            feeRate: els.feeRate.value,
+            leverage: els.leverage.value,
+            fundingRate: els.fundingRate.value,
+            hoursLeverage: els.hoursLeverage.value,
+            entryDatetime: els.entryDatetime.value,
+            direction: els.direction.value,
+            symbol: els.symbol.value,
+            entryPrice: els.entryPrice.value,
+            tpPrice: els.tpPrice.value,
+            slPrice: els.slPrice.value,
+            manualCurrentPrice: els.manualCurrentPrice.value
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            // stockage impossible (mode privé, etc.)
+        }
+    }
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            Object.entries(state).forEach(([key, value]) => {
+                if (key in els && value != null && els[key]) {
+                    els[key].value = value;
+                }
+            });
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function resetState() {
+        // Réinitialise les principaux champs, mais conserve le symbole et direction
+        els.wallet.value = "100";
+        els.feeRate.value = "0.1";
+        els.leverage.value = "1";
+        els.fundingRate.value = "0.01";
+        els.hoursLeverage.value = "";
+        els.entryDatetime.value = "";
+        els.entryPrice.value = "";
+        els.tpPrice.value = "";
+        els.slPrice.value = "";
+        els.manualCurrentPrice.value = "";
+        wsPriceValue = null;
+        els.wsPrice.textContent = "–";
+        els.wsLastUpdate.textContent = "–";
+        els.computedHours.textContent = "";
+        saveState();
+        recalcAll();
+    }
+
+    // ---------- Événements ----------
+    const inputsToWatch = [
+        "wallet",
+        "feeRate",
+        "leverage",
+        "fundingRate",
+        "hoursLeverage",
+        "entryDatetime",
+        "direction",
+        "symbol",
+        "entryPrice",
+        "tpPrice",
+        "slPrice",
+        "manualCurrentPrice"
+    ];
+
+    inputsToWatch.forEach((key) => {
+        const el = els[key];
+        if (!el) return;
+        const evtName = el.tagName === "SELECT" || el.type === "datetime-local" ? "change" : "input";
+        el.addEventListener(evtName, () => {
+            if (key === "symbol") {
+                connectWebSocket();
+            }
+            recalcAll();
+            saveState();
+        });
+    });
+
+    els.resetBtn.addEventListener("click", () => {
+        resetState();
+    });
+
+    els.connectWsBtn.addEventListener("click", () => {
+        connectWebSocket();
+    });
+
+    // ---------- Initialisation ----------
+    loadState();
+    recalcAll();
+    connectWebSocket();
+})();
+</script>
+</body>
+</html>
