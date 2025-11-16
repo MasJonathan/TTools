@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <!-- IMPORTANT pour que le responsive fonctionne sur mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi quotidien des macros</title>
     <style>
         :root {
@@ -336,17 +338,6 @@
             gap: 4px;
         }
 
-        .tag-small {
-            display: inline-flex;
-            align-items: center;
-            padding: 1px 6px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 600;
-            background: #ecfdf5;
-            color: #047857;
-        }
-
         .note {
             font-size: 10px;
             color: #9ca3af;
@@ -413,8 +404,9 @@
         /* ====== RESPONSIVE ====== */
 
         @media (max-width: 900px) {
+            /* Force une seule colonne sur petits écrans */
             .layout {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
             }
         }
 
@@ -471,10 +463,6 @@
                 justify-content: center;
             }
 
-            .actions-right {
-                justify-content: flex-start;
-            }
-
             table {
                 font-size: 11px;
             }
@@ -486,14 +474,6 @@
             .presets-list {
                 max-height: none;
                 overflow-y: visible;
-            }
-
-            .preset-item {
-                padding: 6px 7px;
-            }
-
-            .progress-block {
-                margin-bottom: 5px;
             }
         }
 
@@ -532,18 +512,6 @@
                 margin-top: 4px;
             }
 
-            .progress-label-row {
-                font-size: 10px;
-            }
-
-            .summary-value {
-                font-size: 13px;
-            }
-
-            .summary-sub {
-                font-size: 10px;
-            }
-
             table {
                 font-size: 10px;
             }
@@ -575,7 +543,6 @@
                 1. Renseignez les objectifs en macros. 2. Ajoutez vos repas. 3. Visualisez consommé / restant.
             </div>
 
-            <!-- Formulaire objectifs -->
             <section style="margin-bottom: 10px;">
                 <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px;">Objectifs (g / jour)</div>
                 <form id="goals-form" novalidate>
@@ -606,7 +573,6 @@
                 </div>
             </section>
 
-            <!-- Résumé & barres de progression -->
             <section style="margin-top: 8px; margin-bottom: 10px;">
                 <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Résumé du jour</div>
                 <div class="summary-grid">
@@ -667,7 +633,6 @@
 
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 8px 0 10px;">
 
-            <!-- Formulaire repas -->
             <section>
                 <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px;">Ajouter un repas</div>
                 <form id="meal-form" novalidate>
@@ -705,7 +670,6 @@
                 </form>
             </section>
 
-            <!-- Liste des repas -->
             <section style="margin-top: 12px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap;">
                     <div style="font-size: 12px; font-weight: 600;">Repas du jour</div>
@@ -763,7 +727,6 @@
 </div>
 
 <script>
-    // --- Gestion du stockage local ---
     const STORAGE_KEYS = {
         GOALS: "macroTracker_goals",
         TODAY: "macroTracker_today",
@@ -781,11 +744,7 @@
     function loadGoals() {
         const raw = localStorage.getItem(STORAGE_KEYS.GOALS);
         if (!raw) return null;
-        try {
-            return JSON.parse(raw);
-        } catch {
-            return null;
-        }
+        try { return JSON.parse(raw); } catch { return null; }
     }
 
     function saveGoals(goals) {
@@ -799,19 +758,17 @@
     function loadToday() {
         const raw = localStorage.getItem(STORAGE_KEYS.TODAY);
         if (!raw) return null;
-        try {
-            return JSON.parse(raw);
-        } catch {
-            return null;
-        }
+        try { return JSON.parse(raw); } catch { return null; }
     }
 
     function saveToday(todayData) {
         localStorage.setItem(STORAGE_KEYS.TODAY, JSON.stringify(todayData));
     }
 
-    function clearToday() {
+    function clearAllData() {
+        localStorage.removeItem(STORAGE_KEYS.GOALS);
         localStorage.removeItem(STORAGE_KEYS.TODAY);
+        localStorage.removeItem(STORAGE_KEYS.PRESETS);
     }
 
     function loadPresets() {
@@ -829,13 +786,6 @@
         localStorage.setItem(STORAGE_KEYS.PRESETS, JSON.stringify(presets));
     }
 
-    function clearAllData() {
-        localStorage.removeItem(STORAGE_KEYS.GOALS);
-        localStorage.removeItem(STORAGE_KEYS.TODAY);
-        localStorage.removeItem(STORAGE_KEYS.PRESETS);
-    }
-
-    // --- Calculs utilitaires ---
     function computeCaloriesFromMacros(p, f, c) {
         return p * 4 + f * 9 + c * 4;
     }
@@ -851,7 +801,6 @@
         return `${p.toFixed(0)}P / ${f.toFixed(0)}L / ${c.toFixed(0)}G`;
     }
 
-    // --- Éléments DOM ---
     const currentDayBadge = document.getElementById("current-day-badge");
 
     const goalsForm = document.getElementById("goals-form");
@@ -894,15 +843,10 @@
     const presetsPlaceholder = document.getElementById("presets-placeholder");
     const presetsList = document.getElementById("presets-list");
 
-    // --- État ---
     let goals = { protein: 0, fat: 0, carb: 0 };
-    let today = {
-        date: getTodayDateString(),
-        meals: []
-    };
+    let today = { date: getTodayDateString(), meals: [] };
     let presets = [];
 
-    // --- Initialisation ---
     function init() {
         const todayStr = getTodayDateString();
         currentDayBadge.textContent = `Aujourd’hui ${todayStr}`;
@@ -937,7 +881,6 @@
         updateSummaryAndProgress();
     }
 
-    // --- Rendu des repas ---
     function renderMeals() {
         mealsTbody.innerHTML = "";
         if (!today.meals || today.meals.length === 0) {
@@ -975,9 +918,7 @@
             btnDelete.type = "button";
             btnDelete.className = "btn-secondary btn-xxs";
             btnDelete.textContent = "Supprimer";
-            btnDelete.addEventListener("click", () => {
-                removeMeal(meal.id);
-            });
+            btnDelete.addEventListener("click", () => removeMeal(meal.id));
 
             divActions.appendChild(btnDelete);
             tdActions.appendChild(divActions);
@@ -1009,7 +950,6 @@
         mealErrorEl.textContent = "";
     }
 
-    // --- Rendu des favoris ---
     function renderPresets() {
         presetsList.innerHTML = "";
         if (!presets || presets.length === 0) {
@@ -1058,17 +998,13 @@
             btnUseAdd.type = "button";
             btnUseAdd.className = "btn-secondary btn-xxs";
             btnUseAdd.textContent = "Ajouter au jour";
-            btnUseAdd.addEventListener("click", () => {
-                addMealFromPreset(preset);
-            });
+            btnUseAdd.addEventListener("click", () => addMealFromPreset(preset));
 
             const btnDelete = document.createElement("button");
             btnDelete.type = "button";
             btnDelete.className = "btn-danger btn-xxs";
             btnDelete.textContent = "Supprimer";
-            btnDelete.addEventListener("click", () => {
-                deletePreset(preset.id);
-            });
+            btnDelete.addEventListener("click", () => deletePreset(preset.id));
 
             btnRow.appendChild(btnUseFill);
             btnRow.appendChild(btnUseAdd);
@@ -1102,7 +1038,6 @@
         renderPresets();
     }
 
-    // --- Résumé & progression ---
     function updateSummaryAndProgress() {
         const totalP = today.meals.reduce((sum, m) => sum + (m.protein || 0), 0);
         const totalF = today.meals.reduce((sum, m) => sum + (m.fat || 0), 0);
@@ -1187,7 +1122,6 @@
         }
     }
 
-    // --- Gestion des événements ---
     goalsForm.addEventListener("submit", function (e) {
         e.preventDefault();
         const p = Number(goalProteinInput.value);
