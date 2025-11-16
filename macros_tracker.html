@@ -82,6 +82,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
         .card-subtitle {
@@ -170,6 +171,7 @@
             gap: 6px;
             box-shadow: 0 8px 18px rgba(20, 184, 166, 0.35);
             transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+            white-space: nowrap;
         }
 
         button span.icon {
@@ -263,6 +265,8 @@
             justify-content: space-between;
             font-size: 11px;
             margin-bottom: 3px;
+            gap: 4px;
+            flex-wrap: wrap;
         }
 
         .progress-label-name {
@@ -373,6 +377,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
         .preset-name {
@@ -390,6 +395,7 @@
             display: flex;
             gap: 4px;
             justify-content: flex-end;
+            flex-wrap: wrap;
         }
 
         .btn-xxs {
@@ -404,19 +410,146 @@
             font-style: italic;
         }
 
+        /* ====== RESPONSIVE ====== */
+
         @media (max-width: 900px) {
             .layout {
                 grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
+            body {
+                background: #f3f4f6;
+            }
+
             .page {
-                margin-top: 20px;
+                margin-top: 16px;
+                padding: 0 10px 24px;
             }
 
             .header-card {
                 border-radius: 14px;
+                padding: 14px 14px;
+                margin-bottom: 14px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 12px;
+            }
+
+            .layout {
+                gap: 14px;
+            }
+
+            .card {
+                padding: 12px 12px 10px;
+                box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+            }
+
+            form {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .actions-horizontal {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .actions-horizontal button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .actions-right {
+                justify-content: flex-start;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 5px 5px;
+            }
+
+            .presets-list {
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .preset-item {
+                padding: 6px 7px;
+            }
+
+            .progress-block {
+                margin-bottom: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page {
+                margin-top: 12px;
+                padding: 0 8px 20px;
+            }
+
+            .header-card {
+                padding: 12px 12px;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            .card-title {
+                font-size: 14px;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+            button {
+                font-size: 11px;
+                padding: 7px 10px;
+            }
+
+            .badge-day {
+                width: 100%;
+                text-align: left;
+                margin-top: 4px;
+            }
+
+            .progress-label-row {
+                font-size: 10px;
+            }
+
+            .summary-value {
+                font-size: 13px;
+            }
+
+            .summary-sub {
+                font-size: 10px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 4px 4px;
             }
         }
     </style>
@@ -574,7 +707,7 @@
 
             <!-- Liste des repas -->
             <section style="margin-top: 12px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px;flex-wrap:wrap;">
                     <div style="font-size: 12px; font-weight: 600;">Repas du jour</div>
                     <button type="button" class="btn-secondary btn-xxs" id="btn-reset-day">
                         🔄 Réinitialiser les repas du jour
@@ -710,7 +843,7 @@
     function clampPercent(p) {
         if (!isFinite(p)) return 0;
         if (p < 0) return 0;
-        if (p > 300) return 300; // barres limitées pour éviter des débordements extrêmes
+        if (p > 300) return 300;
         return p;
     }
 
@@ -761,11 +894,11 @@
     const presetsPlaceholder = document.getElementById("presets-placeholder");
     const presetsList = document.getElementById("presets-list");
 
-    // --- État en mémoire ---
+    // --- État ---
     let goals = { protein: 0, fat: 0, carb: 0 };
     let today = {
         date: getTodayDateString(),
-        meals: []   // {id, name, protein, fat, carb, calories}
+        meals: []
     };
     let presets = [];
 
@@ -774,7 +907,6 @@
         const todayStr = getTodayDateString();
         currentDayBadge.textContent = `Aujourd’hui ${todayStr}`;
 
-        // Charger objectifs
         const storedGoals = loadGoals();
         if (storedGoals) {
             goals = {
@@ -787,7 +919,6 @@
             goalCarbInput.value = goals.carb || "";
         }
 
-        // Charger données du jour
         const storedToday = loadToday();
         if (storedToday && storedToday.date === todayStr) {
             today = {
@@ -799,7 +930,6 @@
             saveToday(today);
         }
 
-        // Charger favoris
         presets = loadPresets();
 
         renderMeals();
@@ -1008,8 +1138,6 @@
             summaryRemainingKcal.textContent = "—";
         }
 
-        // Progressions
-        // Calories
         if (goalKcal > 0) {
             const ratioCal = (totalKcal / goalKcal) * 100;
             const clampedCal = clampPercent(ratioCal);
@@ -1022,7 +1150,6 @@
             progressCalText.textContent = "Objectif non défini";
         }
 
-        // Protéines
         if (goalP > 0) {
             const ratioP = (totalP / goalP) * 100;
             const clampedP = clampPercent(ratioP);
@@ -1035,7 +1162,6 @@
             progressProteinText.textContent = "Objectif non défini";
         }
 
-        // Lipides
         if (goalF > 0) {
             const ratioF = (totalF / goalF) * 100;
             const clampedF = clampPercent(ratioF);
@@ -1048,7 +1174,6 @@
             progressFatText.textContent = "Objectif non défini";
         }
 
-        // Glucides
         if (goalC > 0) {
             const ratioC = (totalC / goalC) * 100;
             const clampedC = clampPercent(ratioC);
@@ -1175,7 +1300,6 @@
             return;
         }
         clearAllData();
-        // Réinitialiser l’état
         goals = { protein: 0, fat: 0, carb: 0 };
         goalProteinInput.value = "";
         goalFatInput.value = "";
