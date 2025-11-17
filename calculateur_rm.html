@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculateur 1RM - 20RM (multi-formules)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #050816;
+      --card-bg: #0f172a;
+      --card-border: rgba(148, 163, 184, 0.35);
+      --primary: #22c55e;
+      --primary-soft: rgba(34, 197, 94, 0.15);
+      --accent: #38bdf8;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+      --radius-xl: 18px;
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 55%, #020617 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow-soft);
+      padding: 20px 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before,
+    .card::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(40px);
+      opacity: 0.24;
+      pointer-events: none;
+    }
+    .card::before {
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, var(--primary-soft), transparent 70%);
+      top: -60px;
+      right: -60px;
+    }
+    .card::after {
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.18), transparent 70%);
+      bottom: -80px;
+      left: -80px;
+    }
+
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 4px 9px;
+      width: fit-content;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+    }
+
+    .card-title {
+      font-size: clamp(22px, 3vw, 26px);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-title span.highlight {
+      color: var(--primary);
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 380px;
+    }
+
+    .form-section {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    label span.info {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text-main);
+      padding: 9px 13px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), transform 0.08s ease-out;
+    }
+
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-0.5px);
+    }
+
+    input[type="number"]::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    .formula-help {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      padding: 9px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at top left, #4ade80, #22c55e);
+      color: #022c22;
+      box-shadow: 0 8px 22px rgba(34, 197, 94, 0.32);
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.12s ease-out;
+    }
+
+    button span.icon {
+      font-size: 15px;
+      transform: translateY(0.5px);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(34, 197, 94, 0.4);
+      filter: brightness(1.03);
+    }
+
+    button:active {
+      transform: translateY(0px) scale(0.98);
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      max-width: 280px;
+    }
+
+    .error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 3px;
+    }
+
+    .results-section {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .rm-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      backdrop-filter: blur(8px);
+      margin-top: 4px;
+    }
+
+    .rm-number {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .rm-value {
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .rm-value span.unit {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .rm-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .chart-card {
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.36);
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+      min-height: 230px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .chart-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: var(--primary);
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 170px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .table-wrapper {
+      max-height: 170px;
+      overflow: hidden auto;
+      margin-top: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: rgba(15, 23, 42, 0.96);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 6px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(31, 41, 55, 0.95);
+    }
+
+    tbody tr:nth-child(even) { background: rgba(15, 23, 42, 0.95); }
+    tbody tr:nth-child(odd) { background: rgba(15, 23, 42, 0.9); }
+
+    tbody tr:hover { background: rgba(22, 163, 74, 0.16); }
+
+    .rm-label { font-weight: 500; font-size: 11px; }
+    .light { color: var(--text-muted); font-size: 11px; }
+
+    .footnote {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 820px) {
+      .card {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 18px 16px;
+        gap: 18px;
+      }
+
+      .chart-card { min-height: 240px; }
+
+      .rm-summary {
+        margin-top: 4px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 16px 12px; }
+
+      .card-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+      }
+
+      .rm-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="card">
+      <div>
+        <header class="card-header">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            Calculateur de RM
+          </div>
+          <h1 class="card-title">
+            Profil de force
+            <span class="highlight">1RM → 20RM</span>
+          </h1>
+          <p class="subtitle">
+            Saisissez une charge et un nombre de répétitions pour estimer votre 1RM et les charges maximales
+            de 1 à 20 répétitions, selon plusieurs formules reconnues.
+          </p>
+        </header>
+
+        <section class="form-section">
+          <form id="rmForm">
+            <div class="input-group">
+              <label for="weight">
+                Charge soulevée
+                <span class="info">(kg)</span>
+              </label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                placeholder="Ex. 100"
+                step="0.5"
+                min="1"
+                required
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="reps">
+                Nombre de répétitions (RM)
+                <span class="info">1 à 20 reps réalisées à l'effort maximal</span>
+              </label>
+              <input
+                type="number"
+                id="reps"
+                name="reps"
+                placeholder="Ex. 5"
+                min="1"
+                
+                required
+              />
+              <div id="error" class="error" style="display:none;"></div>
+            </div>
+
+            <div class="input-group">
+              <label for="formula">
+                Formule d'estimation
+                <span class="info">Lombardi par défaut</span>
+              </label>
+              <select id="formula" name="formula">
+                <option value="lombardi" selected>Lombardi (exponentielle)</option>
+                <option value="epley">Epley (ajustée)</option>
+                <option value="brzycki">Brzycki</option>
+                <option value="lander">Lander</option>
+              </select>
+              <div id="formulaHelp" class="formula-help"></div>
+            </div>
+
+            <div class="button-row">
+              <button type="submit">
+                <span class="icon">⚡</span>
+                <span>Calculer</span>
+              </button>
+              <p class="hint">
+                Les valeurs sont des estimations théoriques. À confronter à votre expérience terrain, votre fatigue
+                et votre technique sur le mouvement.
+              </p>
+            </div>
+          </form>
+
+          <div id="summary" class="rm-summary" style="display:none;">
+            <div>
+              <div class="rm-number">1RM estimée</div>
+              <div class="rm-value">
+                <span id="oneRmValue">0</span>
+                <span class="unit">kg</span>
+              </div>
+            </div>
+            <div class="rm-subtext" id="summaryText"></div>
+          </div>
+
+          <p class="footnote">
+            Cet outil ne remplace pas l'avis d'un professionnel de santé ou d'un coach. Travaillez avec une
+            technique maîtrisée, une progression raisonnée et des échauffements adaptés.
+          </p>
+        </section>
+      </div>
+
+      <div class="results-section">
+        <section class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">Répartition des charges par RM</div>
+            <span id="chartBadge" class="chart-badge" style="display:none;">Aucun calcul</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="rmChart"></canvas>
+          </div>
+        </section>
+
+        <div class="table-wrapper" id="tableWrapper" style="display:none;">
+          <table>
+            <thead>
+              <tr>
+                <th>RM</th>
+                <th>Charge estimée (kg)</th>
+                <th>% de 1RM</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("rmForm");
+    const errorEl = document.getElementById("error");
+    const summaryEl = document.getElementById("summary");
+    const oneRmValueEl = document.getElementById("oneRmValue");
+    const summaryTextEl = document.getElementById("summaryText");
+    const tableWrapper = document.getElementById("tableWrapper");
+    const resultsBody = document.getElementById("resultsBody");
+    const chartBadge = document.getElementById("chartBadge");
+    const formulaSelect = document.getElementById("formula");
+    const formulaHelp = document.getElementById("formulaHelp");
+
+    const chartCtx = document.getElementById("rmChart").getContext("2d");
+    let rmChart = null;
+
+    const FORMULAS = {
+      lombardi: {
+        id: "lombardi",
+        name: "Lombardi",
+        description: "Relation exponentielle : 1RM = Poids × reps^0,10. Décroissance plus rapide de la répétition lorsque la charge augmente.",
+        oneRm: (weight, reps) => weight * Math.pow(reps, 0.1),
+        weightAtRm: (oneRm, rm) => oneRm / Math.pow(rm, 0.1)
+      },
+      epley: {
+        id: "epley",
+        name: "Epley ajustée",
+        description: "Version ajustée pour garder 1RM = charge à 1 rep : 1RM = Poids × (1 + (reps − 1) / 30).",
+        oneRm: (weight, reps) => weight * (1 + (reps - 1) / 30),
+        weightAtRm: (oneRm, rm) => oneRm / (1 + (rm - 1) / 30)
+      },
+      brzycki: {
+        id: "brzycki",
+        name: "Brzycki",
+        description: "Fréquemment utilisée en force : 1RM ≈ Poids × 36 / (37 − reps).",
+        oneRm: (weight, reps) => {
+          const denom = 37 - reps;
+          if (denom <= 0) return NaN;
+          return weight * (36 / denom);
+        },
+        weightAtRm: (oneRm, rm) => {
+          const factor = (37 - rm) / 36;
+          return oneRm * factor;
+        }
+      },
+      lander: {
+        id: "lander",
+        name: "Lander",
+        description: "Formule historique en haltérophilie : 1RM = (100 × Poids) / (101,3 − 2,67123 × reps).",
+        oneRm: (weight, reps) => {
+          const denom = 101.3 - 2.67123 * reps;
+          if (denom <= 0) return NaN;
+          return (100 * weight) / denom;
+        },
+        weightAtRm: (oneRm, rm) => {
+          const denom = 101.3 - 2.67123 * rm;
+          return (oneRm * denom) / 100;
+        }
+      }
+    };
+
+    function updateFormulaHelp() {
+      const selected = FORMULAS[formulaSelect.value];
+      if (selected) {
+        formulaHelp.textContent = selected.description;
+      }
+    }
+
+    function roundToHalf(value) {
+      return Math.round(value * 2) / 2;
+    }
+
+    function buildResults(oneRm, formulaKey, reps) {
+      const results = [];
+      const formula = FORMULAS[formulaKey];
+      const maxRM = Math.max(20, reps);
+      for (let rm = 1; rm <= maxRM; rm++) {
+        const estimatedWeightRaw = formula.weightAtRm(oneRm, rm);
+        const rounded = roundToHalf(estimatedWeightRaw);
+        const percent = (rounded / oneRm) * 100;
+        results.push({
+          rm,
+          weight: rounded,
+          percent
+        });
+      }
+      return results;
+    }
+
+    function updateTable(results, oneRm) {
+      resultsBody.innerHTML = "";
+      results.forEach((row) => {
+        const tr = document.createElement("tr");
+
+        const rmTd = document.createElement("td");
+        rmTd.innerHTML = `<span class="rm-label">${row.rm}RM</span>`;
+        tr.appendChild(rmTd);
+
+        const weightTd = document.createElement("td");
+        weightTd.textContent = `${row.weight.toFixed(1).replace(".0", "")} kg`;
+        tr.appendChild(weightTd);
+
+        const percentTd = document.createElement("td");
+        percentTd.innerHTML = `<span class="light">${row.percent.toFixed(1)} %</span>`;
+        tr.appendChild(percentTd);
+
+        resultsBody.appendChild(tr);
+      });
+
+      tableWrapper.style.display = "block";
+    }
+
+    function updateChart(results, formulaKey) {
+      const labels = results.map(r => r.rm);
+      const data = results.map(r => r.weight);
+      const formula = FORMULAS[formulaKey];
+
+      if (rmChart) {
+        rmChart.destroy();
+      }
+
+      rmChart = new Chart(chartCtx, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: `Charge estimée (kg) - ${formula.name}`,
+              data,
+              fill: false,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `RM ${ctx.label} : ${ctx.formattedValue} kg`
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              title: { display: true, text: "RM" },
+              ticks: { stepSize: 1 }
+            },
+            y: {
+              grid: { color: "rgba(148, 163, 184, 0.16)" },
+              beginAtZero: false,
+              title: { display: true, text: "Charge (kg)" }
+            }
+          }
+        }
+      });
+
+      chartBadge.style.display = "inline-block";
+      chartBadge.textContent = `Courbe : ${formula.name}`;
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      errorEl.style.display = "none";
+      summaryEl.style.display = "none";
+
+      const weight = parseFloat(String(form.weight.value).replace(",", "."));
+      const reps = parseInt(form.reps.value, 10);
+      const formulaKey = formulaSelect.value;
+      const formula = FORMULAS[formulaKey];
+
+      if (isNaN(weight) || isNaN(reps)) {
+        errorEl.textContent = "Veuillez saisir une charge et un nombre de répétitions valides.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      if (weight <= 0) {
+        errorEl.textContent = "La charge doit être strictement positive.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      if (reps < 1) {
+        errorEl.textContent = "Le nombre de répétitions doit être positif.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const oneRmRaw = formula.oneRm(weight, reps);
+      if (!isFinite(oneRmRaw) || isNaN(oneRmRaw) || oneRmRaw <= 0) {
+        errorEl.textContent = "Les paramètres saisis ne permettent pas un calcul cohérent pour cette formule.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const oneRm = roundToHalf(oneRmRaw);
+      const results = buildResults(oneRm, formulaKey, reps);
+
+      oneRmValueEl.textContent = oneRm.toFixed(1).replace(".0", "");
+      summaryTextEl.textContent = `Estimation basée sur ${weight.toFixed(1).replace(".0", "")} kg × ${reps} répétition(s) — formule ${formula.name}.`;
+      summaryEl.style.display = "flex";
+
+      updateTable(results, oneRm);
+      updateChart(results, formulaKey);
+    });
+
+    formulaSelect.addEventListener("change", updateFormulaHelp);
+    updateFormulaHelp();
+
+    chartBadge.style.display = "inline-block";
+    chartBadge.textContent = "En attente de données";
+  </script>
+</body>
+</html>
