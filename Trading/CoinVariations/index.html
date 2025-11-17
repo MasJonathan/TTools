@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crypto Ticker Binance avec Levier</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <style>
+    :root {
+      --bg-main: #050816;
+      --bg-card: #0b1020;
+      --bg-card-soft: #101631;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.1);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-soft: rgba(148, 163, 184, 0.2);
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.6);
+      --up: #22c55e;
+      --down: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        Roboto, "Segoe UI", sans-serif;
+      color: var(--text-main);
+    }
+
+    .ticker-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .ticker-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-soft);
+      max-width: 720px;
+      width: 100%;
+    }
+
+    .ticker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 28px;
+      flex-wrap: wrap;
+    }
+
+    .pair-block {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .pair-symbol {
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pair-exchange {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .price-block {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .price-value {
+      font-size: 1.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .price-currency {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .symbol-form {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .symbol-form label,
+    .leverage-group label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .symbol-input-wrapper,
+    .leverage-input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-card);
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 2px 6px 2px 8px;
+    }
+
+    .symbol-input-wrapper input,
+    .leverage-input-wrapper input {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-main);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .symbol-input-wrapper input {
+      width: 80px;
+      text-transform: uppercase;
+    }
+
+    .symbol-input-wrapper input::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    .leverage-input-wrapper input {
+      width: 42px;
+      text-align: right;
+    }
+
+    .leverage-multiplier {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .symbol-button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #e5f0ff;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .symbol-button:active {
+      transform: translateY(1px);
+      filter: brightness(0.92);
+    }
+
+    .ticker-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .periods-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .period-card {
+      background: var(--bg-card-soft);
+      border-radius: 10px;
+      padding: 4px 6px;
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .period-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .period-value {
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+      font-weight: 500;
+    }
+
+    .period-value.up {
+      color: var(--up);
+    }
+
+    .period-value.down {
+      color: var(--down);
+    }
+
+    .ticker-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+    }
+
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+    }
+
+    .status-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
+    }
+
+    .timestamp {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    @media (max-height: 180px) {
+      .ticker-wrapper {
+        padding: 2px 4px;
+      }
+
+      .ticker-card {
+        padding: 6px 8px;
+        border-radius: 10px;
+        gap: 3px;
+      }
+
+      .ticker-header {
+        min-height: 24px;
+      }
+
+      .pair-symbol {
+        font-size: 0.9rem;
+      }
+
+      .price-value {
+        font-size: 1rem;
+      }
+
+      .symbol-form label,
+      .leverage-group label {
+        display: none;
+      }
+
+      .ticker-footer {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ticker-header {
+        align-items: flex-start;
+      }
+      .controls {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .symbol-form label,
+      .leverage-group label {
+        display: none;
+      }
+
+      .periods-row {
+        gap: 2px;
+      }
+
+      .period-card {
+        border-radius: 8px;
+        padding: 3px 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ticker-wrapper">
+    <div class="ticker-card">
+      <div class="ticker-header">
+        <div class="pair-block">
+          <div class="pair-symbol" id="symbolDisplay">INJUSDT</div>
+          <div class="pair-exchange">Binance Spot</div>
+        </div>
+
+        <div class="price-block">
+          <div class="price-value" id="price">–</div>
+          <div class="price-currency" id="quoteCurrency">USDT</div>
+        </div>
+
+        <div class="controls">
+          <form class="symbol-form" id="symbolForm">
+            <label for="symbolInput">Symbole</label>
+            <div class="symbol-input-wrapper">
+              <input
+                id="symbolInput"
+                type="text"
+                placeholder="INJUSDT"
+                autocomplete="off"
+              />
+              <button type="submit" class="symbol-button">Go</button>
+            </div>
+          </form>
+
+          <div class="leverage-group">
+            <label for="leverageInput">Levier</label>
+            <div class="leverage-input-wrapper">
+              <input
+                id="leverageInput"
+                type="number"
+                min="1"
+                step="0.1"
+                value="1"
+              />
+              <div class="leverage-multiplier">x</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticker-body">
+        <div class="periods-row" id="periodsRow">
+          <!-- Rempli dynamiquement -->
+        </div>
+      </div>
+
+      <div class="ticker-footer">
+        <div class="status-indicator">
+          <div class="status-dot" id="statusDot"></div>
+          <div class="status-text" id="statusText">Initialisation…</div>
+        </div>
+        <div class="timestamp" id="timestamp">–</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PERIODS = [
+      { label: "1m", interval: "1m" },
+      { label: "5m", interval: "5m" },
+      { label: "15m", interval: "15m" },
+      { label: "1h", interval: "1h" },
+      { label: "4h", interval: "4h" },
+      { label: "1d", interval: "1d" },
+    ];
+
+    const API_BASE = "https://api.binance.com";
+    const WS_BASE = "wss://stream.binance.com:9443/ws";
+
+    let currentSymbol = "INJUSDT";
+    let currentPrice = null;
+    let baselines = {};
+    let ws = null;
+    let leverage = 1;
+
+    const symbolDisplay = document.getElementById("symbolDisplay");
+    const priceEl = document.getElementById("price");
+    const quoteCurrencyEl = document.getElementById("quoteCurrency");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const timestampEl = document.getElementById("timestamp");
+    const periodsRow = document.getElementById("periodsRow");
+    const symbolForm = document.getElementById("symbolForm");
+    const symbolInput = document.getElementById("symbolInput");
+    const leverageInput = document.getElementById("leverageInput");
+
+    function buildPeriodCards() {
+      periodsRow.innerHTML = "";
+      PERIODS.forEach((p) => {
+        const card = document.createElement("div");
+        card.className = "period-card";
+
+        const label = document.createElement("div");
+        label.className = "period-label";
+        label.textContent = p.label;
+
+        const value = document.createElement("div");
+        value.className = "period-value";
+        value.textContent = "--";
+        value.dataset.interval = p.interval;
+
+        card.appendChild(label);
+        card.appendChild(value);
+        periodsRow.appendChild(card);
+      });
+    }
+
+    function updateTimestamp() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      timestampEl.textContent = `${hh}:${mm}:${ss}`;
+    }
+
+    setInterval(updateTimestamp, 1000);
+    updateTimestamp();
+
+    function setStatus(message, isError = false) {
+      statusText.textContent = message;
+      if (isError) {
+        statusDot.classList.add("error");
+      } else {
+        statusDot.classList.remove("error");
+      }
+    }
+
+    function formatPrice(price) {
+      if (!isFinite(price)) return "–";
+      if (price >= 100) return price.toFixed(2);
+      if (price >= 1) return price.toFixed(3);
+      return price.toFixed(6);
+    }
+
+    function deriveQuoteCurrency(symbol) {
+      const suffixes = ["USDT", "USDC", "BUSD", "BTC", "ETH", "EUR", "TRY"];
+      for (const s of suffixes) {
+        if (symbol.endsWith(s)) return s;
+      }
+      return "";
+    }
+
+    function updatePercentages() {
+      PERIODS.forEach((p) => {
+        const el = periodsRow.querySelector(
+          `.period-value[data-interval="${p.interval}"]`
+        );
+        if (!el) return;
+
+        const base = baselines[p.interval];
+        if (currentPrice == null || base == null || base <= 0) {
+          el.textContent = "--";
+          el.classList.remove("up", "down");
+          return;
+        }
+
+        const change = ((currentPrice - base) / base) * 100;
+        const leveragedChange = change * leverage;
+        const formatted =
+          (leveragedChange >= 0 ? "+" : "") +
+          leveragedChange.toFixed(2).toString() +
+          "%";
+
+        el.textContent = formatted;
+        el.classList.remove("up", "down");
+
+        if (leveragedChange > 0.01) {
+          el.classList.add("up");
+        } else if (leveragedChange < -0.01) {
+          el.classList.add("down");
+        }
+      });
+    }
+
+    async function fetchInitialData(symbol) {
+      setStatus("Chargement du prix et des historiques…", false);
+
+      try {
+        const priceRes = await fetch(
+          `${API_BASE}/api/v3/ticker/price?symbol=${encodeURIComponent(symbol)}`
+        );
+        if (!priceRes.ok) {
+          throw new Error("Symbole introuvable ou non listé sur Binance.");
+        }
+        const priceData = await priceRes.json();
+        currentPrice = parseFloat(priceData.price);
+        priceEl.textContent = formatPrice(currentPrice);
+
+        const klinePromises = PERIODS.map((p) =>
+          fetch(
+            `${API_BASE}/api/v3/klines?symbol=${encodeURIComponent(
+              symbol
+            )}&interval=${p.interval}&limit=1`
+          )
+        );
+
+        const klineResponses = await Promise.all(klinePromises);
+        const klineJsons = await Promise.all(
+          klineResponses.map((r) => {
+            if (!r.ok) {
+              throw new Error("Erreur de récupération des bougies de marché.");
+            }
+            return r.json();
+          })
+        );
+
+        baselines = {};
+        klineJsons.forEach((klines, idx) => {
+          const p = PERIODS[idx];
+          if (Array.isArray(klines) && klines.length > 0) {
+            const openPrice = parseFloat(klines[0][1]);
+            if (isFinite(openPrice) && openPrice > 0) {
+              baselines[p.interval] = openPrice;
+            }
+          }
+        });
+
+        updatePercentages();
+        setStatus(`Données initiales chargées pour ${symbol}.`, false);
+      } catch (err) {
+        console.error(err);
+        setStatus(
+          err && err.message
+            ? err.message
+            : "Erreur de chargement des données.",
+          true
+        );
+      }
+    }
+
+    function connectWebSocket(symbol) {
+      if (ws) {
+        ws.onopen = null;
+        ws.onmessage = null;
+        ws.onerror = null;
+        ws.onclose = null;
+        ws.close();
+        ws = null;
+      }
+
+      const streamName = symbol.toLowerCase() + "@trade";
+      const url = `${WS_BASE}/${streamName}`;
+
+      setStatus("Connexion WebSocket…", false);
+
+      try {
+        ws = new WebSocket(url);
+      } catch (e) {
+        console.error(e);
+        setStatus("Impossible d’ouvrir la WebSocket.", true);
+        return;
+      }
+
+      ws.onopen = () => {
+        setStatus(`Connecté au flux temps réel (${symbol}).`, false);
+      };
+
+      ws.onerror = (event) => {
+        console.error("WebSocket error", event);
+        setStatus("Erreur WebSocket.", true);
+      };
+
+      ws.onclose = () => {
+        setStatus("Déconnecté. Nouvelle tentative dans 5 secondes…", true);
+        setTimeout(() => {
+          if (!ws || ws.readyState === WebSocket.CLOSED) {
+            connectWebSocket(currentSymbol);
+          }
+        }, 5000);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const priceStr = data.p || data.c;
+          if (!priceStr) return;
+
+          const p = parseFloat(priceStr);
+          if (!isFinite(p)) return;
+
+          currentPrice = p;
+          priceEl.textContent = formatPrice(currentPrice);
+          updatePercentages();
+        } catch (err) {
+          console.error("Erreur parsing WebSocket message", err);
+        }
+      };
+    }
+
+    function applySymbol(symbolRaw) {
+      const s = (symbolRaw || "").trim().toUpperCase();
+      if (!s) return;
+
+      currentSymbol = s;
+      symbolDisplay.textContent = s;
+
+      const quote = deriveQuoteCurrency(s);
+      quoteCurrencyEl.textContent = quote || "";
+
+      setStatus(`Mise à jour pour ${s}…`, false);
+      fetchInitialData(s);
+      connectWebSocket(s);
+    }
+
+    function applyLeverage(valueRaw) {
+      const v = parseFloat(valueRaw);
+      if (!isFinite(v) || v <= 0) {
+        leverage = 1;
+      } else {
+        leverage = v;
+      }
+      leverageInput.value = leverage;
+      updatePercentages();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      buildPeriodCards();
+
+      symbolInput.value = currentSymbol;
+      applySymbol(currentSymbol);
+
+      symbolForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        applySymbol(symbolInput.value);
+      });
+
+      leverageInput.addEventListener("input", () => {
+        applyLeverage(leverageInput.value);
+      });
+    });
+  </script>
+</body>
+</html>
