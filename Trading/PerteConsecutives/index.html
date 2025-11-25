@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Tableau de Probabilités – Pertes Consécutives</title>
+<style>
+    :root {
+        --bg-main: #050816;
+        --bg-panel: #050a18;
+        --bg-card: #0b1120;
+        --bg-card-soft: #111827;
+        --accent: #3b82f6;
+        --accent-soft: rgba(59, 130, 246, 0.1);
+        --accent-strong: rgba(59, 130, 246, 0.3);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --border-soft: rgba(148, 163, 184, 0.18);
+        --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
+        --loss-low: #0f172a;
+        --loss-mid: #1e293b;
+        --loss-high: #7f1d1d;
+        --loss-very-high: #b91c1c;
+        --badge-bg: rgba(15, 23, 42, 0.9);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+        color: var(--text-main);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .app-shell {
+        width: min(1200px, 100%);
+        padding: 24px;
+    }
+
+    .panel {
+        background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.98));
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 55%);
+    }
+
+    .panel-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #22c55e;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+    }
+
+    .title-block h1 {
+        font-size: 18px;
+        margin: 0;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #e5e7eb;
+    }
+
+    .title-block span {
+        display: block;
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    .panel-header-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.6));
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .badge-pill {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9ca3af;
+    }
+
+    .dot-small {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #facc15;
+    }
+
+    .content {
+        display: grid;
+        grid-template-columns: minmax(260px, 290px) 1fr;
+        gap: 0;
+    }
+
+    .sidebar {
+        border-right: 1px solid rgba(30, 64, 175, 0.65);
+        background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), rgba(15, 23, 42, 1));
+        padding: 18px 18px 20px;
+    }
+
+    .sidebar h2 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #93c5fd;
+    }
+
+    .sidebar p {
+        margin: 0 0 16px;
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+
+    .field-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+    }
+
+    .field label {
+        color: var(--text-muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .field input {
+        padding: 7px 9px;
+        border-radius: 8px;
+        border: 1px solid var(--border-soft);
+        background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.98));
+        color: var(--text-main);
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .field input:focus {
+        border-color: rgba(59, 130, 246, 0.9);
+        box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+        background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.75), rgba(15, 23, 42, 1));
+    }
+
+    .btn-primary {
+        margin-top: 6px;
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: none;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.55);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.07);
+        box-shadow: 0 18px 40px rgba(37, 99, 235, 0.75);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.6);
+    }
+
+    .note {
+        margin-top: 14px;
+        padding: 10px 11px;
+        border-radius: 10px;
+        border: 1px dashed rgba(148, 163, 184, 0.6);
+        background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.25), rgba(15, 23, 42, 0.9));
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.55;
+    }
+
+    .note strong {
+        color: #e5e7eb;
+    }
+
+    .note small {
+        display: block;
+        margin-top: 4px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: #64748b;
+    }
+
+    .table-zone {
+        padding: 18px 18px 20px;
+        background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), rgba(15, 23, 42, 1));
+    }
+
+    .table-header-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .table-header-row h2 {
+        margin: 0;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: #93c5fd;
+    }
+
+    .table-header-row span {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .legend {
+        display: flex;
+        gap: 10px;
+        font-size: 10px;
+        color: #9ca3af;
+        margin-bottom: 6px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .legend-color {
+        width: 14px;
+        height: 8px;
+        border-radius: 999px;
+    }
+
+    .legend-low { background: var(--loss-low); border: 1px solid rgba(148, 163, 184, 0.2); }
+    .legend-mid { background: var(--loss-mid); border: 1px solid rgba(148, 163, 184, 0.3); }
+    .legend-high { background: var(--loss-high); }
+    .legend-very-high { background: var(--loss-very-high); }
+
+    .table-wrapper {
+        max-height: 440px;
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(30, 64, 175, 0.5);
+        background: radial-gradient(circle at top left, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.98));
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 520px;
+        font-size: 11px;
+    }
+
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    th, td {
+        padding: 6px 8px;
+        text-align: center;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+        white-space: nowrap;
+    }
+
+    th {
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 10px;
+        border-bottom: 1px solid rgba(30, 64, 175, 0.9);
+    }
+
+    th:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.98));
+        text-align: left;
+    }
+
+    tbody tr:nth-child(even) td:first-child,
+    tbody tr:nth-child(even) th:first-child {
+        background: linear-gradient(90deg, #020617, #020617);
+    }
+
+    tbody tr:nth-child(odd) td:first-child,
+    tbody tr:nth-child(odd) th:first-child {
+        background: linear-gradient(90deg, #020617, #020617);
+    }
+
+    td {
+        background: #020617;
+        border-right: 1px solid rgba(15, 23, 42, 0.9);
+        font-variant-numeric: tabular-nums;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    td.loss-low {
+        background: radial-gradient(circle at center, #020617, #020617);
+    }
+
+    td.loss-mid {
+        background: radial-gradient(circle at top, #0f172a, #020617);
+    }
+
+    td.loss-high {
+        background: radial-gradient(circle at center, rgba(185, 28, 28, 0.45), #020617);
+        color: #fecaca;
+        font-weight: 500;
+    }
+
+    td.loss-very-high {
+        background: radial-gradient(circle at center, rgba(220, 38, 38, 0.75), #020617);
+        color: #fee2e2;
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.4);
+    }
+
+    td span.value-main {
+        display: block;
+        font-size: 11px;
+    }
+
+    td span.value-sub {
+        display: block;
+        font-size: 9px;
+        color: #9ca3af;
+        opacity: 0.85;
+        margin-top: 1px;
+    }
+
+    @media (max-width: 900px) {
+        body {
+            align-items: flex-start;
+        }
+        .app-shell {
+            padding: 16px;
+        }
+        .content {
+            grid-template-columns: 1fr;
+        }
+        .sidebar {
+            border-right: none;
+            border-bottom: 1px solid rgba(30, 64, 175, 0.65);
+        }
+    }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-header-left">
+                <div class="status-dot"></div>
+                <div class="title-block">
+                    <h1>Probability Matrix – Losing Streaks</h1>
+                    <span>Outil de gestion du risque basé sur le winrate &amp; les séries de pertes consécutives</span>
+                </div>
+            </div>
+            <div class="panel-header-right">
+                <div class="badge">
+                    <div class="dot-small"></div>
+                    <span class="badge-pill">Risk Management</span>
+                </div>
+                <span>Unité : P(N pertes d'affilée) = (1 - WR)<sup>n</sup></span>
+            </div>
+        </div>
+
+        <div class="content">
+            <aside class="sidebar">
+                <h2>Paramètres</h2>
+                <p>Configurez la plage de winrate et la profondeur de la série de pertes pour simuler le risque de drawdown sur votre système de trading.</p>
+
+                <div class="field-group">
+                    <div class="field">
+                        <label for="wr_min">Winrate min (%)</label>
+                        <input type="number" id="wr_min" value="50" min="1" max="99" step="1">
+                    </div>
+                    <div class="field">
+                        <label for="wr_max">Winrate max (%)</label>
+                        <input type="number" id="wr_max" value="90" min="1" max="99" step="1">
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <div class="field">
+                        <label for="wr_step">Incrément WR (%)</label>
+                        <input type="number" id="wr_step" value="5" min="1" max="50" step="1">
+                    </div>
+                    <div class="field">
+                        <label for="max_losses">Pertes consécutives max</label>
+                        <input type="number" id="max_losses" value="10" min="1" max="30" step="1">
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="generateTable()">Mettre à jour la matrice</button>
+
+                <div class="note">
+                    <strong>Lecture rapide :</strong>
+                    <br>Chaque cellule représente la probabilité théorique d'observer <strong>au moins</strong> une série de <strong>n pertes consécutives</strong> avec un winrate donné, sur un grand nombre de trades.
+                    <small>Outil indicatif. Ne remplace pas un backtest statistique rigoureux.</small>
+                </div>
+            </aside>
+
+            <section class="table-zone">
+                <div class="table-header-row">
+                    <h2>Matrice de probabilités</h2>
+                    <span>Colonnes : winrate | Lignes : longueur de la série de pertes</span>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color legend-low"></div>
+                        <span>Probabilité très faible</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-mid"></div>
+                        <span>Probabilité modérée</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-high"></div>
+                        <span>Probabilité élevée</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color legend-very-high"></div>
+                        <span>Probabilité très élevée</span>
+                    </div>
+                </div>
+
+                <div class="table-wrapper" id="tableContainer"></div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+function formatProbability(p) {
+    if (p <= 0) return "0";
+    if (!isFinite(p)) return "-";
+
+    const ratio = 1 / p;
+    if (ratio > 1 && ratio < 10000) {
+        return "1/" + Math.round(ratio);
+    }
+    if (p < 0.0001) {
+        return (p * 100).toExponential(2).replace("e-", "e-");
+    }
+    if (p < 0.01) {
+        return (p * 100).toFixed(4) + "%";
+    }
+    return (p * 100).toFixed(2) + "%";
+}
+
+function getCellClass(p) {
+    if (p >= 0.5) return "loss-very-high";
+    if (p >= 0.2) return "loss-high";
+    if (p >= 0.05) return "loss-mid";
+    return "loss-low";
+}
+
+function generateTable() {
+    const wrMin = parseInt(document.getElementById("wr_min").value) || 1;
+    const wrMax = parseInt(document.getElementById("wr_max").value) || 99;
+    const wrStep = parseInt(document.getElementById("wr_step").value) || 1;
+    const maxLosses = parseInt(document.getElementById("max_losses").value) || 10;
+
+    const min = Math.max(1, Math.min(wrMin, wrMax));
+    const max = Math.min(99, Math.max(wrMin, wrMax));
+
+    let winrates = [];
+    for (let w = min; w <= max; w += Math.max(1, wrStep)) {
+        winrates.push(w);
+    }
+
+    let html = "<table><thead><tr><th>Série de pertes</th>";
+    winrates.forEach(w => {
+        html += `<th>${w}% WR</th>`;
+    });
+    html += "</tr></thead><tbody>";
+
+    for (let n = 1; n <= maxLosses; n++) {
+        html += `<tr><th>${n} pertes</th>`;
+        winrates.forEach(w => {
+            const loseProb = 1 - w / 100;
+            const p = Math.pow(loseProb, n);
+            const css = getCellClass(p);
+            html += `<td class="${css}"><span class="value-main">${formatProbability(p)}</span><span class="value-sub">p = (1 - ${w/100})^${n}</span></td>`;
+        });
+        html += "</tr>";
+    }
+
+    html += "</tbody></table>";
+    document.getElementById("tableContainer").innerHTML = html;
+}
+
+generateTable();
+</script>
+
+</body>
+</html>
