@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Calculateur de PnL Binance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="icon.png" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <meta name="theme-color" content="#050816" />
+
+    <style>
+        :root {
+            --bg: #050816;
+            --bg-soft: #070b16;
+            --bg-card: #070a13;
+            --bg-elevated: #0b1020;
+            --accent: #3b82f6;
+            --accent-soft: rgba(59, 130, 246, 0.12);
+            --accent-strong: rgba(59, 130, 246, 0.28);
+            --text: #e5e7eb;
+            --text-muted: #9ca3af;
+            --border-subtle: rgba(148, 163, 184, 0.25);
+            --border-strong: rgba(148, 163, 184, 0.35);
+            --danger: #f97373;
+            --success: #4ade80;
+            --warning: #facc15;
+            --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.75);
+            --radius-lg: 16px;
+            --radius-xl: 22px;
+            --radius-pill: 999px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at 10% 0%, #111827 0, #020617 52%, #020617 100%);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            max-width: 1220px;
+            margin: 0 auto;
+            padding: 1.7rem 1.5rem 1.8rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-start;
+            margin-bottom: 1.6rem;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .title-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #bfdbfe, #3b82f6);
+            box-shadow: 0 0 14px rgba(59, 130, 246, 0.85);
+        }
+
+        .subtitle {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            max-width: 520px;
+        }
+
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.16rem 0.7rem;
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.92));
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8);
+            font-size: 0.72rem;
+            color: #bfdbfe;
+        }
+
+        .badge-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 6px;
+            background: radial-gradient(circle at 30% 0, #bfdbfe, #60a5fa);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #020617;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .env-tag {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            padding: 0.12rem 0.6rem;
+            border-radius: var(--radius-pill);
+            border: 1px dashed rgba(148, 163, 184, 0.45);
+            background: radial-gradient(circle at 0 0, rgba(148, 163, 184, 0.18), transparent 55%);
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            position: relative;
+            border-radius: var(--radius-xl);
+            padding: 1rem 1.1rem 0.95rem;
+            background:
+                radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.08), transparent 58%),
+                radial-gradient(circle at 100% 0, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 1));
+            border: 1px solid rgba(31, 41, 55, 0.9);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.65rem;
+            gap: 0.7rem;
+        }
+
+        .card-titles {
+            display: flex;
+            flex-direction: column;
+            gap: 0.18rem;
+        }
+
+        .card-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.7rem 0.9rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .field label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .field label span.right-note {
+            font-weight: 500;
+            color: #9ca3af;
+            font-size: 0.72rem;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        input[type="datetime-local"],
+        select {
+            width: 100%;
+            padding: 0.42rem 0.55rem;
+            border-radius: 10px;
+            border: 1px solid rgba(31, 41, 55, 0.9);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+            color: var(--text);
+            font-size: 0.8rem;
+            transition: border-color 120ms ease-out, box-shadow 120ms ease-out, background 120ms ease-out;
+        }
+
+        input::placeholder {
+            color: #4b5563;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.9);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.6);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.98));
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .small-note {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .field-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            border-radius: var(--radius-pill);
+            border: 1px solid rgba(59, 130, 246, 0.7);
+            background:
+                radial-gradient(circle at 0 0, rgba(248, 250, 252, 0.14), transparent 45%),
+                linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.95));
+            color: #e5edff;
+            padding: 0.32rem 0.85rem;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            letter-spacing: 0.03em;
+        }
+
+        .btn span.dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0, #bfdbfe, #60a5fa);
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+            box-shadow: 0 10px 30px rgba(30, 64, 175, 0.45);
+        }
+
+        .btn-secondary {
+            border-color: rgba(148, 163, 184, 0.65);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(148, 163, 184, 0.9);
+            box-shadow: 0 8px 26px rgba(15, 23, 42, 0.85);
+        }
+
+        .status-pill {
+            font-size: 0.72rem;
+            padding: 0.14rem 0.7rem;
+            border-radius: var(--radius-pill);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid transparent;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .status-connected {
+            background: radial-gradient(circle at 0 0, rgba(22, 163, 74, 0.35), transparent 60%);
+            color: var(--success);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        .status-connected .status-dot {
+            background: radial-gradient(circle at 30% 0, #bbf7d0, #16a34a);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.9);
+        }
+
+        .status-disconnected {
+            background: radial-gradient(circle at 0 0, rgba(248, 113, 113, 0.25), transparent 60%);
+            color: var(--danger);
+            border-color: rgba(248, 113, 113, 0.45);
+        }
+
+        .status-disconnected .status-dot {
+            background: radial-gradient(circle at 30% 0, #fecaca, #ef4444);
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.85);
+        }
+
+        .ws-price-display {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .ws-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-card {
+            position: relative;
+            border-radius: var(--radius-xl);
+            padding: 0.85rem 0.9rem 0.8rem;
+            background:
+                radial-gradient(circle at 0 0, rgba(37, 99, 235, 0.1), transparent 60%),
+                linear-gradient(145deg, #020617, #050816);
+            border: 1px solid rgba(31, 41, 55, 0.9);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .result-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.3rem;
+        }
+
+        .result-title {
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .result-tag {
+            font-size: 0.72rem;
+            padding: 0.12rem 0.6rem;
+            border-radius: var(--radius-pill);
+            border: 1px solid transparent;
+        }
+
+        .tag-tp {
+            color: var(--success);
+            background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.18), transparent 60%);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        .tag-sl {
+            color: var(--danger);
+            background: radial-gradient(circle at 0 0, rgba(248, 113, 113, 0.16), transparent 60%);
+            border-color: rgba(248, 113, 113, 0.5);
+        }
+
+        .tag-current {
+            color: var(--warning);
+            background: radial-gradient(circle at 0 0, rgba(250, 204, 21, 0.18), transparent 60%);
+            border-color: rgba(250, 204, 21, 0.5);
+        }
+
+        .result-main {
+            font-size: 1.16rem;
+            font-weight: 600;
+            margin: 0.25rem 0 0.15rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .result-percent {
+            font-size: 0.85rem;
+        }
+
+        .result-percent.positive {
+            color: var(--success);
+        }
+
+        .result-percent.negative {
+            color: var(--danger);
+        }
+
+        .result-body {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 0.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.14rem;
+        }
+
+        .result-body-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .options-section {
+            margin-bottom: 1.1rem;
+        }
+
+        .options-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+
+        .options-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .options-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .tp-sl-row {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            justify-content: space-between;
+        }
+
+        .tp-sl-row > div {
+            flex: 1;
+        }
+
+        .tp-sl-row label {
+            justify-content: flex-start;
+        }
+
+        .tp-sl-link {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .tp-sl-link input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--accent);
+        }
+
+        .equity-chart-wrapper {
+            margin-top: 0.75rem;
+            padding: 0.7rem 0.75rem;
+            border-radius: 14px;
+            background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.12), transparent 60%);
+            border: 1px solid rgba(31, 41, 55, 0.85);
+        }
+
+        .equity-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.4rem;
+            font-size: 0.78rem;
+        }
+
+        .equity-chart-header span.secondary {
+            color: var(--text-muted);
+        }
+
+        #equityChart {
+            width: 100%;
+            height: 220px;
+            display: block;
+        }
+
+        footer {
+            margin-top: 1.45rem;
+            padding-top: 0.7rem;
+            border-top: 1px solid rgba(31, 41, 55, 0.9);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .footer-col {
+            max-width: 560px;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        @media (max-width: 1024px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page {
+                padding: 1.2rem 1rem 1.4rem;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-right {
+                align-items: flex-start;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .breakeven-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.65rem;
+            padding: 0.5rem 0.7rem;
+            border-radius: 10px;
+            background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.08), transparent 60%);
+            border: 1px solid rgba(31, 41, 55, 0.85);
+        }
+
+        .breakeven-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .price-chart-wrapper {
+            padding: 0.1rem 0;
+        }
+
+        #priceChart {
+            width: 100%;
+            height: 300px;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .card,
+            .result-card {
+                border-radius: 14px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header>
+        <div class="title-block">
+            <h1>
+                <span class="title-dot"></span>
+                Calculateur de PnL Binance
+            </h1>
+            <p class="subtitle">
+                Estimation précise du résultat de vos positions futures avec prise en compte des frais, de l’effet de levier
+                et des frais de financement, en intégrant le prix temps réel du marché.
+            </p>
+        </div>
+        <div class="header-right">
+            <div class="badge">
+                <span class="badge-icon">RT</span>
+                <span>Flux temps réel Binance WebSocket</span>
+            </div>
+            <div class="env-tag mono">Simulation hors-ligne, données indicatives uniquement</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="layout-grid">
+            <!-- Paramètres généraux -->
+            <article class="card">
+                <div class="card-header">
+                    <div class="card-titles">
+                        <div class="card-title">Paramètres généraux</div>
+                        <div class="card-subtitle">Capital, structure de frais et exposition au levier</div>
+                    </div>
+                    <div class="card-actions">
+                        <button id="resetBtn" type="button" class="btn btn-secondary">
+                            <span class="dot"></span>
+                            Réinitialiser
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="wallet">
+                            Montant du wallet
+                            <span class="right-note">Base: 100</span>
+                        </label>
+                        <input id="wallet" type="number" step="0.01" min="0" placeholder="100" value="100" />
+                        <span class="small-note">Montant disponible dans la devise de cotation (USDT, USDC, …).</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="feeRate">
+                            Frais de transaction (%)
+                            <span class="right-note">Par défaut: 0,10</span>
+                        </label>
+                        <input id="feeRate" type="number" step="0.001" min="0" placeholder="0.1" value="0.1" />
+                        <span class="small-note">Appliqués à l’ouverture et à la clôture.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="leverage">Effet de levier</label>
+                        <input id="leverage" type="number" step="0.1" min="1" value="1" />
+                        <span class="small-note">1 = sans levier. La position notionnelle = wallet × levier.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="fundingRate">
+                            Frais de levier (% / heure)
+                        </label>
+                        <input id="fundingRate" type="number" step="0.001" min="0" placeholder="0.01" value="0.01" />
+                        <span class="small-note">Appliqués sur la partie empruntée (position – wallet).</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="hoursLeverage">Durée d’exposition (heures)</label>
+                        <input id="hoursLeverage" type="number" step="0.01" min="0" placeholder="0" />
+                        <span class="small-note">Si vide, calcul automatique à partir de la date-heure d’entrée.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="entryDatetime">Date-heure d’entrée</label>
+                        <input id="entryDatetime" type="datetime-local" />
+                        <span id="computedHours" class="small-note"></span>
+                    </div>
+
+                    <div class="field">
+                        <label for="direction">Direction du trade</label>
+                        <select id="direction">
+                            <option value="long">Long</option>
+                            <option value="short">Short</option>
+                        </select>
+                        <span class="small-note">Simulation en all-in sur le wallet disponible.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="symbol">
+                            Symbole Binance
+                            <span class="right-note mono">INJUSDC, BTCUSDT…</span>
+                        </label>
+                        <input id="symbol" type="text" value="INJUSDC" />
+                        <span class="small-note mono">Flux utilisé : <strong>@trade</strong> (prix dernier échange).</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Prix & WebSocket -->
+            <article class="card">
+                <div class="card-header">
+                    <div class="card-titles">
+                        <div class="card-title">Prix & flux temps réel</div>
+                        <div class="card-subtitle">Entrée, objectifs de sortie et suivi du prix en direct</div>
+                    </div>
+                    <div class="card-actions">
+                        <button id="connectWsBtn" type="button" class="btn">
+                            <span class="dot"></span>
+                            Reconnecter le flux
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="entryPrice">Prix d’entrée</label>
+                        <input id="entryPrice" type="number" step="0.0001" min="0" />
+                    </div>
+
+                    <div class="field">
+                        <label for="tpPrice">Take Profit (TP)</label>
+                        <input id="tpPrice" type="number" step="0.0001" min="0" />
+                    </div>
+
+                    <div class="field">
+                        <label for="slPrice">Stop Loss (SL)</label>
+                        <input id="slPrice" type="number" step="0.0001" min="0" />
+                    </div>
+
+                    <div class="field">
+                        <label for="manualCurrentPrice">Prix actuel (manuel)</label>
+                        <input id="manualCurrentPrice" type="number" step="0.0001" min="0" />
+                        <span class="small-note">Utilisé si le prix temps réel n’est pas disponible.</span>
+                    </div>
+
+                    <div class="field">
+                        <label>Prix WebSocket</label>
+                        <div class="field-row">
+                            <span id="wsPrice" class="ws-price-display mono">–</span>
+                        </div>
+                        <span class="ws-meta">
+                            Dernière mise à jour :
+                            <span id="wsLastUpdate">–</span>
+                        </span>
+                    </div>
+
+                    <div class="field">
+                        <label>Statut du flux</label>
+                        <div id="wsStatus" class="status-pill status-disconnected">
+                            <span class="status-dot"></span>
+                            <span>Déconnecté</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="breakeven-bar">
+                    <span class="breakeven-label">Break Even</span>
+                    <span id="breakevenPrice" class="mono ws-price-display">–</span>
+                </div>
+            </article>
+        </section>
+
+        <!-- Résultats -->
+        <section class="results-grid" aria-label="Synthèse des scénarios de sortie">
+            <!-- TP -->
+            <article class="result-card" id="tpCard">
+                <div class="result-header">
+                    <div class="result-title">Sortie sur Take Profit</div>
+                    <span class="result-tag tag-tp">TP</span>
+                </div>
+                <div class="result-main">
+                    <span id="tpPnlValue" class="mono">–</span>
+                    <span id="tpPnlPercent" class="result-percent">–</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-body-row">
+                        <span>Nouveau wallet</span>
+                        <span id="tpNewWallet" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Prix de sortie</span>
+                        <span id="tpExitPrice" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Total frais</span>
+                        <span id="tpFees" class="mono">–</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- SL -->
+            <article class="result-card" id="slCard">
+                <div class="result-header">
+                    <div class="result-title">Sortie sur Stop Loss</div>
+                    <span class="result-tag tag-sl">SL</span>
+                </div>
+                <div class="result-main">
+                    <span id="slPnlValue" class="mono">–</span>
+                    <span id="slPnlPercent" class="result-percent">–</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-body-row">
+                        <span>Nouveau wallet</span>
+                        <span id="slNewWallet" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Prix de sortie</span>
+                        <span id="slExitPrice" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Total frais</span>
+                        <span id="slFees" class="mono">–</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Prix actuel -->
+            <article class="result-card" id="currentCard">
+                <div class="result-header">
+                    <div class="result-title">Sortie au prix actuel</div>
+                    <span class="result-tag tag-current">Actuel</span>
+                </div>
+                <div class="result-main">
+                    <span id="currentPnlValue" class="mono">–</span>
+                    <span id="currentPnlPercent" class="result-percent">–</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-body-row">
+                        <span>Nouveau wallet</span>
+                        <span id="currentNewWallet" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Prix de sortie</span>
+                        <span id="currentExitPrice" class="mono">–</span>
+                    </div>
+                    <div class="result-body-row">
+                        <span>Total frais</span>
+                        <span id="currentFees" class="mono">–</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- Options et projection -->
+        <section class="options-section">
+            <article class="card">
+                <div class="options-header">
+                    <div>
+                        <div class="options-title">Projection statistique</div>
+                        <div class="options-subtitle">Simulation de l’évolution du wallet sur plusieurs jours à partir de votre plan de trade.</div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="nDays">
+                            Nombre de jours simulés
+                            <span class="right-note">Par défaut : 30</span>
+                        </label>
+                        <input id="nDays" type="number" min="1" step="1" value="30" />
+                        <span class="small-note">Durée de la projection en jours de trading.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="nTradesPerDay">
+                            Nombre de trades / jour
+                            <span class="right-note">Par défaut : 1</span>
+                        </label>
+                        <input id="nTradesPerDay" type="number" min="0" step="1" value="1" />
+                        <span class="small-note">Nombre moyen de prises de position par journée.</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="winRate">
+                            Win rate (%)
+                            <span class="right-note">Par défaut : 50</span>
+                        </label>
+                        <input id="winRate" type="number" min="0" max="100" step="0.1" value="50" />
+                        <span class="small-note">Probabilité de gain sur un trade unique.</span>
+                    </div>
+
+                    <div class="field">
+                        <div class="tp-sl-row">
+                            <div>
+                                <label for="tpSlRatio">TP : SL ratio</label>
+                                <input id="tpSlRatio" type="text" value="1:2" />
+                            </div>
+                            <div class="tp-sl-link">
+                                <input id="linkTpSl" type="checkbox" checked />
+                                <span>Relier automatiquement au TP / SL du trade</span>
+                            </div>
+                        </div>
+                        <span class="small-note">Lorsque relié, le ratio est dérivé des niveaux d’entrée, TP et SL (arrondi à 3 décimales).</span>
+                    </div>
+                </div>
+
+                <div class="equity-chart-wrapper">
+                    <div class="equity-chart-header">
+                        <span>Projection de l’évolution du wallet</span>
+                        <span class="secondary">Simulation aléatoire basée sur le win rate et le R:R effectif.</span>
+                    </div>
+                    <canvas id="equityChart"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <!-- Price history chart -->
+        <section class="options-section">
+            <article class="card">
+                <div class="card-header">
+                    <div class="card-titles">
+                        <div class="card-title">Historique du prix</div>
+                        <div class="card-subtitle">Suivi temps réel du prix via WebSocket avec niveaux clés</div>
+                    </div>
+                    <div class="card-actions">
+                        <button id="clearChartBtn" type="button" class="btn btn-secondary">
+                            <span class="dot"></span>
+                            Effacer
+                        </button>
+                    </div>
+                </div>
+                <div class="price-chart-wrapper">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-col">
+            La totalité du wallet est engagée sur chaque simulation. La taille de position est calculée comme
+            <span class="mono">wallet × levier</span>. Les frais englobent : ouverture, clôture et frais de financement
+            sur la partie empruntée.
+        </div>
+        <div class="footer-col">
+            Les cotations en temps réel sont issues du flux public Binance (<span class="mono">@trade</span>). Cet outil a
+            vocation à accompagner votre analyse, il ne remplace ni une gestion du risque structurée, ni votre propre
+            jugement de marché.
+        </div>
+    </footer>
+</div>
+
+<script>
+(function () {
+    const STORAGE_KEY = "binance_pnl_calculator_v2";
+
+    const els = {
+        wallet: document.getElementById("wallet"),
+        feeRate: document.getElementById("feeRate"),
+        leverage: document.getElementById("leverage"),
+        fundingRate: document.getElementById("fundingRate"),
+        hoursLeverage: document.getElementById("hoursLeverage"),
+        entryDatetime: document.getElementById("entryDatetime"),
+        direction: document.getElementById("direction"),
+        symbol: document.getElementById("symbol"),
+
+        entryPrice: document.getElementById("entryPrice"),
+        tpPrice: document.getElementById("tpPrice"),
+        slPrice: document.getElementById("slPrice"),
+        manualCurrentPrice: document.getElementById("manualCurrentPrice"),
+
+        wsPrice: document.getElementById("wsPrice"),
+        wsLastUpdate: document.getElementById("wsLastUpdate"),
+        wsStatus: document.getElementById("wsStatus"),
+
+        computedHours: document.getElementById("computedHours"),
+        resetBtn: document.getElementById("resetBtn"),
+        connectWsBtn: document.getElementById("connectWsBtn"),
+
+        tpPnlValue: document.getElementById("tpPnlValue"),
+        tpPnlPercent: document.getElementById("tpPnlPercent"),
+        tpNewWallet: document.getElementById("tpNewWallet"),
+        tpExitPrice: document.getElementById("tpExitPrice"),
+        tpFees: document.getElementById("tpFees"),
+
+        slPnlValue: document.getElementById("slPnlValue"),
+        slPnlPercent: document.getElementById("slPnlPercent"),
+        slNewWallet: document.getElementById("slNewWallet"),
+        slExitPrice: document.getElementById("slExitPrice"),
+        slFees: document.getElementById("slFees"),
+
+        currentPnlValue: document.getElementById("currentPnlValue"),
+        currentPnlPercent: document.getElementById("currentPnlPercent"),
+        currentNewWallet: document.getElementById("currentNewWallet"),
+        currentExitPrice: document.getElementById("currentExitPrice"),
+        currentFees: document.getElementById("currentFees"),
+
+        nDays: document.getElementById("nDays"),
+        nTradesPerDay: document.getElementById("nTradesPerDay"),
+        winRate: document.getElementById("winRate"),
+        tpSlRatio: document.getElementById("tpSlRatio"),
+        linkTpSl: document.getElementById("linkTpSl"),
+        equityChart: document.getElementById("equityChart"),
+
+        breakevenPrice: document.getElementById("breakevenPrice"),
+        priceChart: document.getElementById("priceChart"),
+        clearChartBtn: document.getElementById("clearChartBtn"),
+    };
+
+    let ws = null;
+    let wsPriceValue = null;
+    let lastEquityCurve = null;
+
+    const priceHistory = [];
+    const MAX_PRICE_HISTORY = 600;
+    let lastPriceHistoryTime = 0;
+    let lastWsMessageTime = 0;
+    let wsFallbackInterval = null;
+    const WS_FALLBACK_TIMEOUT = 60000; // 1 minute
+
+    function parseNumber(input, fallback = NaN) {
+        if (input === undefined || input === null || input === "") return fallback;
+        const v = parseFloat(String(input).replace(",", "."));
+        return Number.isFinite(v) ? v : fallback;
+    }
+
+    function formatNumber(value, decimals = 2) {
+        if (!Number.isFinite(value)) return "–";
+        return value.toLocaleString("fr-FR", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+        });
+    }
+
+    function formatPercent(value) {
+        if (!Number.isFinite(value)) return "–";
+        const sign = value > 0 ? "+" : "";
+        return sign + formatNumber(value, 2) + " %";
+    }
+
+    function setWsStatus(connected) {
+        const el = els.wsStatus;
+        el.classList.remove("status-connected", "status-disconnected");
+        if (connected) {
+            el.classList.add("status-connected");
+            el.innerHTML = '<span class="status-dot"></span><span>Connecté</span>';
+        } else {
+            el.classList.add("status-disconnected");
+            el.innerHTML = '<span class="status-dot"></span><span>Déconnecté</span>';
+        }
+    }
+
+    function applyPrice(price) {
+        wsPriceValue = price;
+        els.wsPrice.textContent = formatNumber(price, 4);
+        const now = Date.now();
+        els.wsLastUpdate.textContent = new Date(now).toLocaleString("fr-FR");
+
+        if (now - lastPriceHistoryTime >= 1000) {
+            lastPriceHistoryTime = now;
+            priceHistory.push({ time: now, price });
+            if (priceHistory.length > MAX_PRICE_HISTORY) {
+                priceHistory.shift();
+            }
+        }
+
+        recalcAll();
+    }
+
+    function fetchRestPrice() {
+        const symbolRaw = els.symbol.value.trim();
+        if (!symbolRaw) return;
+        const url = "https://api.binance.com/api/v3/ticker/price?symbol=" + encodeURIComponent(symbolRaw.toUpperCase());
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                const price = parseFloat(data.price);
+                if (Number.isFinite(price)) {
+                    applyPrice(price);
+                }
+            })
+            .catch(() => { /* ignore */ });
+    }
+
+    function startWsFallback() {
+        stopWsFallback();
+        lastWsMessageTime = Date.now();
+        wsFallbackInterval = setInterval(() => {
+            if (Date.now() - lastWsMessageTime >= WS_FALLBACK_TIMEOUT) {
+                lastWsMessageTime = Date.now(); // reset timer
+                fetchRestPrice();
+            }
+        }, 10000);
+    }
+
+    function stopWsFallback() {
+        if (wsFallbackInterval) {
+            clearInterval(wsFallbackInterval);
+            wsFallbackInterval = null;
+        }
+    }
+
+    function computeEffectiveHours() {
+        let hours = parseNumber(els.hoursLeverage.value, NaN);
+        const dtValue = els.entryDatetime.value;
+
+        if (!Number.isFinite(hours) || hours <= 0) {
+            if (dtValue) {
+                const entry = new Date(dtValue);
+                const now = new Date();
+                if (!isNaN(entry.getTime())) {
+                    const diffMs = now.getTime() - entry.getTime();
+                    hours = diffMs / (1000 * 60 * 60);
+                    if (hours < 0) hours = 0;
+                    els.computedHours.textContent =
+                        "Heures calculées depuis l’entrée : " + formatNumber(hours, 2);
+                } else {
+                    els.computedHours.textContent = "";
+                }
+            } else {
+                hours = 0;
+                els.computedHours.textContent = "";
+            }
+        } else {
+            els.computedHours.textContent = "";
+        }
+
+        return hours;
+    }
+
+    function computeScenario(exitPrice) {
+        const wallet = parseNumber(els.wallet.value);
+        const feeRate = parseNumber(els.feeRate.value) / 100;
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const fundingRate = parseNumber(els.fundingRate.value) / 100;
+        const direction = els.direction.value;
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const hoursLeverage = computeEffectiveHours();
+
+        if (
+            !Number.isFinite(wallet) ||
+            wallet <= 0 ||
+            !Number.isFinite(entryPrice) ||
+            entryPrice <= 0 ||
+            !Number.isFinite(exitPrice) ||
+            exitPrice <= 0
+        ) {
+            return null;
+        }
+
+        const positionNotional = wallet * leverage;
+        const borrowed = Math.max(positionNotional - wallet, 0);
+
+        const feeOpen = positionNotional * feeRate;
+        const feeClose = positionNotional * feeRate;
+        const fundingFees =
+            borrowed > 0 && hoursLeverage > 0
+                ? borrowed * fundingRate * hoursLeverage
+                : 0;
+
+        let grossPnl;
+        if (direction === "long") {
+            grossPnl = ((exitPrice - entryPrice) / entryPrice) * positionNotional;
+        } else {
+            grossPnl = ((entryPrice - exitPrice) / entryPrice) * positionNotional;
+        }
+
+        const totalFees = feeOpen + feeClose + fundingFees;
+        const netPnl = grossPnl - totalFees;
+        const newWallet = wallet + netPnl;
+        const pnlPercent = (netPnl / wallet) * 100;
+
+        return {
+            exitPrice,
+            grossPnl,
+            totalFees,
+            netPnl,
+            newWallet,
+            pnlPercent,
+        };
+    }
+
+    function computeBreakeven() {
+        const wallet = parseNumber(els.wallet.value);
+        const feeRate = parseNumber(els.feeRate.value) / 100;
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const fundingRate = parseNumber(els.fundingRate.value) / 100;
+        const direction = els.direction.value;
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const hoursLeverage = computeEffectiveHours();
+
+        if (!Number.isFinite(wallet) || wallet <= 0 ||
+            !Number.isFinite(entryPrice) || entryPrice <= 0) {
+            return NaN;
+        }
+
+        const positionNotional = wallet * leverage;
+        const borrowed = Math.max(positionNotional - wallet, 0);
+        const feeOpen = positionNotional * feeRate;
+        const feeClose = positionNotional * feeRate;
+        const fundingFees = borrowed > 0 && hoursLeverage > 0
+            ? borrowed * fundingRate * hoursLeverage : 0;
+        const totalFees = feeOpen + feeClose + fundingFees;
+
+        if (direction === "long") {
+            return entryPrice * (1 + totalFees / positionNotional);
+        } else {
+            return entryPrice * (1 - totalFees / positionNotional);
+        }
+    }
+
+    function updateResultCard(prefix, result) {
+        const valueEl = els[prefix + "PnlValue"];
+        const percentEl = els[prefix + "PnlPercent"];
+        const walletEl = els[prefix + "NewWallet"];
+        const exitPriceEl = els[prefix + "ExitPrice"];
+        const feesEl = els[prefix + "Fees"];
+
+        if (!result) {
+            valueEl.textContent = "–";
+            percentEl.textContent = "–";
+            walletEl.textContent = "–";
+            exitPriceEl.textContent = "–";
+            feesEl.textContent = "–";
+            percentEl.classList.remove("positive", "negative");
+            return;
+        }
+
+        valueEl.textContent = formatNumber(result.netPnl, 2);
+        walletEl.textContent = formatNumber(result.newWallet, 2);
+        exitPriceEl.textContent = formatNumber(result.exitPrice, 4);
+        feesEl.textContent = formatNumber(result.totalFees, 2);
+
+        percentEl.textContent = formatPercent(result.pnlPercent);
+        percentEl.classList.remove("positive", "negative");
+        if (result.pnlPercent > 0) {
+            percentEl.classList.add("positive");
+        } else if (result.pnlPercent < 0) {
+            percentEl.classList.add("negative");
+        }
+    }
+
+    // Retourne rWinRaw, rLossRaw (en fraction de capital par trade), et ratio texte.
+    function getTpSlReturnsAndRatio() {
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const tpPrice = parseNumber(els.tpPrice.value);
+        const slPrice = parseNumber(els.slPrice.value);
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const direction = els.direction.value;
+
+        let rWinRaw = NaN;
+        let rLossRaw = NaN;
+
+        // Cas 1 : dériver depuis les niveaux de prix + levier
+        if (
+            Number.isFinite(entryPrice) && entryPrice > 0 &&
+            Number.isFinite(tpPrice) && tpPrice > 0 &&
+            Number.isFinite(slPrice) && slPrice > 0
+        ) {
+            if (direction === "long") {
+                rWinRaw = ((tpPrice - entryPrice) / entryPrice) * leverage;
+                rLossRaw = ((entryPrice - slPrice) / entryPrice) * leverage;
+            } else {
+                rWinRaw = ((entryPrice - tpPrice) / entryPrice) * leverage;
+                rLossRaw = ((slPrice - entryPrice) / entryPrice) * leverage;
+            }
+
+            // On ne garde que des valeurs positives
+            rWinRaw = Math.max(rWinRaw, 0);
+            rLossRaw = Math.max(rLossRaw, 0);
+
+            if (rWinRaw > 0 && rLossRaw > 0) {
+                const minSide = Math.min(rWinRaw, rLossRaw);
+                const rWinNorm = rWinRaw / minSide;
+                const rLossNorm = rLossRaw / minSide;
+                const ratioText =
+                    rWinNorm.toFixed(3) + ":" + rLossNorm.toFixed(3);
+
+                if (els.linkTpSl && els.linkTpSl.checked) {
+                    els.tpSlRatio.value = ratioText;
+                }
+
+                return { rWinRaw, rLossRaw, ratioText };
+            }
+        }
+
+        // Cas 2 : utiliser le ratio saisi manuellement
+        const ratioTextRaw = els.tpSlRatio.value || "1:2";
+        const parts = ratioTextRaw.split(":").map((s) => parseNumber(s));
+        if (parts.length === 2 && parts[0] > 0 && parts[1] > 0) {
+            const base = 0.01; // 1 % par unité de ratio
+            rWinRaw = base * parts[0];
+            rLossRaw = base * parts[1];
+            return { rWinRaw, rLossRaw, ratioText: ratioTextRaw };
+        }
+
+        return null;
+    }
+
+    function simulateEquityCurve() {
+        const nDays = Math.max(1, Math.round(parseNumber(els.nDays.value, 30)));
+        const nTradesPerDay = Math.max(0, Math.round(parseNumber(els.nTradesPerDay.value, 1)));
+        const winRate = Math.min(100, Math.max(0, parseNumber(els.winRate.value, 50)));
+        const wallet0 = parseNumber(els.wallet.value);
+        const tpSl = getTpSlReturnsAndRatio();
+
+        if (!Number.isFinite(wallet0) || wallet0 <= 0 || !tpSl || nTradesPerDay === 0) {
+            return null;
+        }
+
+        const winProb = winRate / 100;
+        const winFactor = 1 + tpSl.rWinRaw;
+        const lossFactor = 1 - tpSl.rLossRaw;
+
+        const values = [];
+        let wallet = wallet0;
+        values.push(wallet);
+
+        for (let day = 1; day <= nDays; day++) {
+            for (let t = 0; t < nTradesPerDay; t++) {
+                if (Math.random() < winProb) {
+                    wallet *= winFactor;
+                } else {
+                    wallet *= lossFactor;
+                }
+            }
+            values.push(wallet);
+        }
+
+        return values;
+    }
+
+    function drawEquityCurve(values) {
+        const canvas = els.equityChart;
+        if (!canvas || !canvas.getContext) return;
+        const ctx = canvas.getContext("2d");
+
+        const dpr = window.devicePixelRatio || 1;
+        const displayWidth = canvas.clientWidth || canvas.offsetWidth || 600;
+        const displayHeight = 220;
+        canvas.width = displayWidth * dpr;
+        canvas.height = displayHeight * dpr;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+        const padding = 24;
+        const innerW = displayWidth - padding * 2;
+        const innerH = displayHeight - padding * 2;
+
+        // Axes
+        ctx.strokeStyle = "rgba(55, 65, 81, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, displayHeight - padding);
+        ctx.lineTo(displayWidth - padding, displayHeight - padding);
+        ctx.stroke();
+
+        if (!values || values.length < 2) {
+            ctx.fillStyle = "rgba(156, 163, 175, 0.85)";
+            ctx.font = "12px system-ui";
+            ctx.fillText(
+                "Renseignez les paramètres et les niveaux de TP / SL pour afficher la projection.",
+                padding,
+                displayHeight / 2
+            );
+            return;
+        }
+
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        const range = maxVal - minVal || 1;
+
+        // Ligne médiane
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(padding, padding + innerH / 2);
+        ctx.lineTo(displayWidth - padding, padding + innerH / 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Courbe
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.9)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        const n = values.length - 1;
+        for (let i = 0; i < values.length; i++) {
+            const x = padding + (innerW * i) / n;
+            const norm = (values[i] - minVal) / range;
+            const y = displayHeight - padding - innerH * norm;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Label dernière valeur
+        const last = values[values.length - 1];
+        ctx.fillStyle = "rgba(191, 219, 254, 0.95)";
+        ctx.font = "11px system-ui";
+        ctx.fillText(
+            "Jour " + (values.length - 1) + " : " + formatNumber(last, 2),
+            padding + 8,
+            padding + 12
+        );
+    }
+
+    function drawPriceChart() {
+        const canvas = els.priceChart;
+        if (!canvas || !canvas.getContext) return;
+        const ctx = canvas.getContext("2d");
+
+        const dpr = window.devicePixelRatio || 1;
+        const displayWidth = canvas.clientWidth || canvas.offsetWidth || 600;
+        const displayHeight = 300;
+        canvas.width = displayWidth * dpr;
+        canvas.height = displayHeight * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+        const padL = 70, padR = 16, padT = 16, padB = 28;
+        const innerW = displayWidth - padL - padR;
+        const innerH = displayHeight - padT - padB;
+
+        // Axes
+        ctx.strokeStyle = "rgba(55, 65, 81, 0.9)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, displayHeight - padB);
+        ctx.lineTo(displayWidth - padR, displayHeight - padB);
+        ctx.stroke();
+
+        if (priceHistory.length < 2) {
+            ctx.fillStyle = "rgba(156, 163, 175, 0.85)";
+            ctx.font = "12px system-ui";
+            ctx.fillText("En attente de données WebSocket...", padL + 12, displayHeight / 2);
+            return;
+        }
+
+        // Gather key levels
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const tpPrice = parseNumber(els.tpPrice.value);
+        const slPrice = parseNumber(els.slPrice.value);
+        const breakeven = computeBreakeven();
+
+        const prices = priceHistory.map(p => p.price);
+        let allValues = [...prices];
+        if (Number.isFinite(entryPrice)) allValues.push(entryPrice);
+        if (Number.isFinite(tpPrice)) allValues.push(tpPrice);
+        if (Number.isFinite(slPrice)) allValues.push(slPrice);
+        if (Number.isFinite(breakeven)) allValues.push(breakeven);
+
+        let minVal = Math.min(...allValues);
+        let maxVal = Math.max(...allValues);
+        const margin = (maxVal - minVal) * 0.08 || 0.001;
+        minVal -= margin;
+        maxVal += margin;
+        const range = maxVal - minVal;
+
+        const toY = (v) => padT + innerH - ((v - minVal) / range) * innerH;
+        const toX = (i) => padL + (innerW * i) / (priceHistory.length - 1);
+
+        // Y-axis grid lines
+        ctx.fillStyle = "rgba(156, 163, 175, 0.55)";
+        ctx.font = "10px ui-monospace, monospace";
+        ctx.textAlign = "right";
+        const nGridLines = 5;
+        for (let i = 0; i <= nGridLines; i++) {
+            const v = minVal + (range * i) / nGridLines;
+            const y = toY(v);
+            ctx.strokeStyle = "rgba(55, 65, 81, 0.4)";
+            ctx.setLineDash([2, 3]);
+            ctx.beginPath();
+            ctx.moveTo(padL, y);
+            ctx.lineTo(displayWidth - padR, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillText(formatNumber(v, 4), padL - 6, y + 3);
+        }
+
+        // X-axis time labels
+        ctx.textAlign = "center";
+        ctx.fillStyle = "rgba(156, 163, 175, 0.55)";
+        const nTimeLabels = Math.min(6, priceHistory.length - 1);
+        for (let i = 0; i <= nTimeLabels; i++) {
+            const idx = Math.round((i / nTimeLabels) * (priceHistory.length - 1));
+            const x = toX(idx);
+            const t = new Date(priceHistory[idx].time);
+            const label = t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            ctx.fillText(label, x, displayHeight - padB + 16);
+        }
+
+        // Horizontal level lines (subtle)
+        function drawLevel(price, color, label, dashed) {
+            if (!Number.isFinite(price)) return;
+            if (price < minVal || price > maxVal) return;
+            const y = toY(price);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.45;
+            ctx.setLineDash(dashed ? [6, 4] : [3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(padL, y);
+            ctx.lineTo(displayWidth - padR, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = color;
+            ctx.font = "10px system-ui";
+            ctx.textAlign = "left";
+            ctx.fillText(label + " " + formatNumber(price, 4), padL + 4, y - 4);
+            ctx.globalAlpha = 1;
+        }
+
+        drawLevel(entryPrice, "#60a5fa", "Entry", true);
+        drawLevel(tpPrice, "#4ade80", "TP", true);
+        drawLevel(slPrice, "#f97373", "SL", true);
+        drawLevel(breakeven, "#a78bfa", "BE", true);
+        if (Number.isFinite(wsPriceValue)) {
+            drawLevel(wsPriceValue, "#facc15", "Current", false);
+        }
+
+        // Price curve
+        ctx.strokeStyle = "rgba(59, 130, 246, 0.85)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i < priceHistory.length; i++) {
+            const x = toX(i);
+            const y = toY(priceHistory[i].price);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Fill under curve
+        ctx.lineTo(toX(priceHistory.length - 1), displayHeight - padB);
+        ctx.lineTo(padL, displayHeight - padB);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, padT, 0, displayHeight - padB);
+        grad.addColorStop(0, "rgba(59, 130, 246, 0.12)");
+        grad.addColorStop(1, "rgba(59, 130, 246, 0)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
+    function recalcSimulation() {
+        const curve = simulateEquityCurve();
+        lastEquityCurve = curve;
+        drawEquityCurve(curve);
+    }
+
+    function recalcAll() {
+        const tpExit = parseNumber(els.tpPrice.value);
+        updateResultCard("tp", Number.isFinite(tpExit) ? computeScenario(tpExit) : null);
+
+        const slExit = parseNumber(els.slPrice.value);
+        updateResultCard("sl", Number.isFinite(slExit) ? computeScenario(slExit) : null);
+
+        let currentExit = wsPriceValue;
+        if (!Number.isFinite(currentExit)) {
+            currentExit = parseNumber(els.manualCurrentPrice.value);
+        }
+        updateResultCard(
+            "current",
+            Number.isFinite(currentExit) ? computeScenario(currentExit) : null,
+        );
+
+        // Break-even
+        const be = computeBreakeven();
+        els.breakevenPrice.textContent = Number.isFinite(be) ? formatNumber(be, 4) : "–";
+
+        recalcSimulation();
+        drawPriceChart();
+    }
+
+    function buildWsUrl() {
+        const symbolRaw = els.symbol.value.trim();
+        if (!symbolRaw) return null;
+        const symbol = symbolRaw.toLowerCase();
+        return "wss://stream.binance.com:9443/ws/" + symbol + "@trade";
+    }
+
+    function connectWebSocket() {
+        if (ws) {
+            ws.onopen = ws.onclose = ws.onerror = ws.onmessage = null;
+            try {
+                ws.close();
+            } catch (e) {
+                // ignore
+            }
+            ws = null;
+        }
+
+        const url = buildWsUrl();
+        if (!url) {
+            setWsStatus(false);
+            return;
+        }
+
+        try {
+            ws = new WebSocket(url);
+        } catch (e) {
+            setWsStatus(false);
+            return;
+        }
+
+        ws.onopen = function () {
+            setWsStatus(true);
+        };
+
+        ws.onclose = function () {
+            setWsStatus(false);
+        };
+
+        ws.onerror = function () {
+            setWsStatus(false);
+        };
+
+        ws.onmessage = function (event) {
+            try {
+                const data = JSON.parse(event.data);
+                const price = parseFloat(data.p || data.c || data.lastPrice);
+                if (Number.isFinite(price)) {
+                    lastWsMessageTime = Date.now();
+                    applyPrice(price);
+                }
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        // Initial REST fetch + start fallback timer
+        fetchRestPrice();
+        startWsFallback();
+    }
+
+    function saveState() {
+        const state = {
+            wallet: els.wallet.value,
+            feeRate: els.feeRate.value,
+            leverage: els.leverage.value,
+            fundingRate: els.fundingRate.value,
+            hoursLeverage: els.hoursLeverage.value,
+            entryDatetime: els.entryDatetime.value,
+            direction: els.direction.value,
+            symbol: els.symbol.value,
+            entryPrice: els.entryPrice.value,
+            tpPrice: els.tpPrice.value,
+            slPrice: els.slPrice.value,
+            manualCurrentPrice: els.manualCurrentPrice.value,
+            nDays: els.nDays.value,
+            nTradesPerDay: els.nTradesPerDay.value,
+            winRate: els.winRate.value,
+            tpSlRatio: els.tpSlRatio.value,
+            linkTpSl: els.linkTpSl.checked ? "1" : "0",
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            Object.entries(state).forEach(([key, value]) => {
+                if (key in els && value != null && els[key] && key !== "linkTpSl") {
+                    els[key].value = value;
+                }
+            });
+            if (state.linkTpSl !== undefined) {
+                els.linkTpSl.checked = state.linkTpSl === "1";
+            }
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function resetState() {
+        els.wallet.value = "100";
+        els.feeRate.value = "0.1";
+        els.leverage.value = "1";
+        els.fundingRate.value = "0.01";
+        els.hoursLeverage.value = "";
+        els.entryDatetime.value = "";
+        els.entryPrice.value = "";
+        els.tpPrice.value = "";
+        els.slPrice.value = "";
+        els.manualCurrentPrice.value = "";
+        els.nDays.value = "30";
+        els.nTradesPerDay.value = "1";
+        els.winRate.value = "50";
+        els.tpSlRatio.value = "1:2";
+        els.linkTpSl.checked = true;
+        wsPriceValue = null;
+        els.wsPrice.textContent = "–";
+        els.wsLastUpdate.textContent = "–";
+        els.computedHours.textContent = "";
+        priceHistory.length = 0;
+        stopWsFallback();
+        saveState();
+        recalcAll();
+    }
+
+    const inputsToWatch = [
+        "wallet",
+        "feeRate",
+        "leverage",
+        "fundingRate",
+        "hoursLeverage",
+        "entryDatetime",
+        "direction",
+        "symbol",
+        "entryPrice",
+        "tpPrice",
+        "slPrice",
+        "manualCurrentPrice",
+        "nDays",
+        "nTradesPerDay",
+        "winRate",
+        "tpSlRatio",
+    ];
+
+    inputsToWatch.forEach((key) => {
+        const el = els[key];
+        if (!el) return;
+        const evtName = el.tagName === "SELECT" || el.type === "datetime-local" ? "change" : "input";
+        el.addEventListener(evtName, () => {
+            if (key === "symbol") {
+                connectWebSocket();
+            }
+            recalcAll();
+            saveState();
+        });
+    });
+
+    els.linkTpSl.addEventListener("change", () => {
+        recalcAll();
+        saveState();
+    });
+
+    els.resetBtn.addEventListener("click", () => {
+        resetState();
+    });
+
+    els.connectWsBtn.addEventListener("click", () => {
+        connectWebSocket();
+    });
+
+    window.addEventListener("resize", () => {
+        drawEquityCurve(lastEquityCurve);
+        drawPriceChart();
+    });
+
+    els.clearChartBtn.addEventListener("click", () => {
+        priceHistory.length = 0;
+        drawPriceChart();
+    });
+
+    loadState();
+    recalcAll();
+    connectWebSocket();
+})();
+</script>
+</body>
+</html>
