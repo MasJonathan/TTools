@@ -1,3 +1,18 @@
+# Claude Code
+.claude/
+
+# Environment & secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+
+# Data
 *.csv
 *.csv#
-/ProcessNewIndicators/__pycache__
