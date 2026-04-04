@@ -708,6 +708,15 @@
                         <input id="symbol" type="text" value="INJUSDC" />
                         <span class="small-note mono">Flux utilisé : <strong>@trade</strong> (prix dernier échange).</span>
                     </div>
+
+                    <div class="field">
+                        <label for="maintenanceMarginRate">
+                            Marge de maintenance (%)
+                            <span class="right-note">Par défaut: 0,40</span>
+                        </label>
+                        <input id="maintenanceMarginRate" type="number" step="0.01" min="0" placeholder="0.4" value="0.4" />
+                        <span class="small-note">Binance Tier 1 USDⓈ-M = 0,4 %. Ajustez selon le palier de votre position.</span>
+                    </div>
                 </div>
             </article>
 
@@ -771,6 +780,11 @@
                 <div class="breakeven-bar">
                     <span class="breakeven-label">Break Even</span>
                     <span id="breakevenPrice" class="mono ws-price-display">–</span>
+                </div>
+
+                <div class="breakeven-bar" style="margin-top: 0.35rem;">
+                    <span class="breakeven-label">Liquidation <span id="liquidationPercent" class="mono" style="font-size: 0.72rem; color: var(--danger);"></span></span>
+                    <span id="liquidationPrice" class="mono ws-price-display" style="color: var(--danger);">–</span>
                 </div>
             </article>
         </section>
@@ -1008,6 +1022,9 @@
         equityChart: document.getElementById("equityChart"),
 
         breakevenPrice: document.getElementById("breakevenPrice"),
+        liquidationPrice: document.getElementById("liquidationPrice"),
+        liquidationPercent: document.getElementById("liquidationPercent"),
+        maintenanceMarginRate: document.getElementById("maintenanceMarginRate"),
         priceChart: document.getElementById("priceChart"),
         clearChartBtn: document.getElementById("clearChartBtn"),
     };
@@ -1105,9 +1122,19 @@
         }
     }
 
+    function computeBorrowingInterest(hours) {
+        const wallet = parseNumber(els.wallet.value);
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const fundingRate = parseNumber(els.fundingRate.value) / 100;
+        if (!Number.isFinite(wallet) || wallet <= 0) return 0;
+        const borrowed = Math.max(wallet * leverage - wallet, 0);
+        return borrowed > 0 && hours > 0 ? borrowed * fundingRate * hours : 0;
+    }
+
     function computeEffectiveHours() {
         let hours = parseNumber(els.hoursLeverage.value, NaN);
         const dtValue = els.entryDatetime.value;
+        let fromDatetime = false;
 
         if (!Number.isFinite(hours) || hours <= 0) {
             if (dtValue) {
@@ -1117,17 +1144,30 @@
                     const diffMs = now.getTime() - entry.getTime();
                     hours = diffMs / (1000 * 60 * 60);
                     if (hours < 0) hours = 0;
-                    els.computedHours.textContent =
-                        "Heures calculées depuis l’entrée : " + formatNumber(hours, 2);
+                    fromDatetime = true;
                 } else {
                     els.computedHours.textContent = "";
+                    return 0;
                 }
             } else {
                 hours = 0;
                 els.computedHours.textContent = "";
+                return hours;
             }
+        }
+
+        const interest = computeBorrowingInterest(hours);
+        const interestSuffix = interest > 0
+            ? " — Intérêts d’emprunt : " + formatNumber(interest, 2) + " $"
+            : "";
+
+        if (fromDatetime) {
+            els.computedHours.textContent =
+                "Heures calculées depuis l’entrée : " + formatNumber(hours, 2) + interestSuffix;
         } else {
-            els.computedHours.textContent = "";
+            els.computedHours.textContent = interest > 0
+                ? "Intérêts d’emprunt : " + formatNumber(interest, 2) + " $"
+                : "";
         }
 
         return hours;
@@ -1212,6 +1252,52 @@
         } else {
             return entryPrice * (1 - totalFees / positionNotional);
         }
+    }
+
+    function computeLiquidationPrice() {
+        const wallet = parseNumber(els.wallet.value);
+        const feeRate = parseNumber(els.feeRate.value) / 100;
+        const leverage = Math.max(parseNumber(els.leverage.value), 1);
+        const fundingRate = parseNumber(els.fundingRate.value) / 100;
+        const mmr = parseNumber(els.maintenanceMarginRate.value) / 100;
+        const direction = els.direction.value;
+        const entryPrice = parseNumber(els.entryPrice.value);
+        const hoursLeverage = computeEffectiveHours();
+
+        if (!Number.isFinite(wallet) || wallet <= 0 ||
+            !Number.isFinite(entryPrice) || entryPrice <= 0 ||
+            !Number.isFinite(mmr) || mmr < 0) return null;
+
+        const positionNotional = wallet * leverage;
+        const borrowed = Math.max(positionNotional - wallet, 0);
+        const feeOpen = positionNotional * feeRate;
+        const fundingFees = borrowed > 0 && hoursLeverage > 0
+            ? borrowed * fundingRate * hoursLeverage : 0;
+
+        // Effective wallet balance (after entry fee + cumulative funding)
+        const wEff = wallet - feeOpen - fundingFees;
+        const quantity = positionNotional / entryPrice;
+
+        // Binance USDⓈ-M cross margin liquidation formula
+        // Long:  liqPrice = (entry * Q - wEff) / (Q * (1 - MMR))
+        // Short: liqPrice = (wEff + entry * Q) / (Q * (1 + MMR))
+        let liqPrice;
+        if (direction === "long") {
+            const denom = quantity * (1 - mmr);
+            if (denom <= 0) return null;
+            liqPrice = (entryPrice * quantity - wEff) / denom;
+            if (liqPrice <= 0) return null;
+        } else {
+            const denom = quantity * (1 + mmr);
+            if (denom <= 0) return null;
+            liqPrice = (wEff + entryPrice * quantity) / denom;
+            if (!Number.isFinite(liqPrice) || liqPrice <= 0) return null;
+        }
+
+        if (!Number.isFinite(liqPrice)) return null;
+
+        const distPercent = ((liqPrice - entryPrice) / entryPrice) * 100;
+        return { price: liqPrice, distPercent };
     }
 
     function updateResultCard(prefix, result) {
@@ -1449,6 +1535,8 @@
         const tpPrice = parseNumber(els.tpPrice.value);
         const slPrice = parseNumber(els.slPrice.value);
         const breakeven = computeBreakeven();
+        const liq = computeLiquidationPrice();
+        const liqPrice2 = liq ? liq.price : NaN;
 
         const prices = priceHistory.map(p => p.price);
         let allValues = [...prices];
@@ -1456,6 +1544,7 @@
         if (Number.isFinite(tpPrice)) allValues.push(tpPrice);
         if (Number.isFinite(slPrice)) allValues.push(slPrice);
         if (Number.isFinite(breakeven)) allValues.push(breakeven);
+        if (Number.isFinite(liqPrice2)) allValues.push(liqPrice2);
 
         let minVal = Math.min(...allValues);
         let maxVal = Math.max(...allValues);
@@ -1523,6 +1612,7 @@
         drawLevel(tpPrice, "#4ade80", "TP", true);
         drawLevel(slPrice, "#f97373", "SL", true);
         drawLevel(breakeven, "#a78bfa", "BE", true);
+        drawLevel(liqPrice2, "#f97373", "LIQ", true);
         if (Number.isFinite(wsPriceValue)) {
             drawLevel(wsPriceValue, "#facc15", "Current", false);
         }
@@ -1575,6 +1665,16 @@
         // Break-even
         const be = computeBreakeven();
         els.breakevenPrice.textContent = Number.isFinite(be) ? formatNumber(be, 4) : "–";
+
+        // Liquidation
+        const liq = computeLiquidationPrice();
+        if (liq) {
+            els.liquidationPrice.textContent = formatNumber(liq.price, 4);
+            els.liquidationPercent.textContent = formatPercent(liq.distPercent);
+        } else {
+            els.liquidationPrice.textContent = "–";
+            els.liquidationPercent.textContent = "";
+        }
 
         recalcSimulation();
         drawPriceChart();
@@ -1655,6 +1755,7 @@
             tpPrice: els.tpPrice.value,
             slPrice: els.slPrice.value,
             manualCurrentPrice: els.manualCurrentPrice.value,
+            maintenanceMarginRate: els.maintenanceMarginRate.value,
             nDays: els.nDays.value,
             nTradesPerDay: els.nTradesPerDay.value,
             winRate: els.winRate.value,
@@ -1697,6 +1798,7 @@
         els.tpPrice.value = "";
         els.slPrice.value = "";
         els.manualCurrentPrice.value = "";
+        els.maintenanceMarginRate.value = "0.4";
         els.nDays.value = "30";
         els.nTradesPerDay.value = "1";
         els.winRate.value = "50";
@@ -1725,6 +1827,7 @@
         "tpPrice",
         "slPrice",
         "manualCurrentPrice",
+        "maintenanceMarginRate",
         "nDays",
         "nTradesPerDay",
         "winRate",
